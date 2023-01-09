@@ -1,0 +1,93 @@
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{lrl}
+  \hline
+Parameter & Estimate & 99.7\% HPDI \\ 
+  \hline
+utterance-initial & 0.05 & -0.03 to  0.13 \\ 
+  word-initial & 0.08 &  0.04 to  0.11 \\ 
+  SpeechRate & -0.11 & -0.11 to -0.10 \\ 
+  PhonWord & -0.01 & -0.01 to -0.01 \\ 
+  word-form frequency & -0.03 & -0.03 to -0.03 \\ 
+  Consonant cluster & -0.00 & -0.01 to  0.00 \\ 
+   \hline
+\end{tabular}
+\end{table}
+
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{llrll}
+  \hline
+Language & Parameter & Estimate & 89\% HPDI & 99.7\% HPDI \\ 
+  \hline
+Arapaho & utterance-initial & -0.18 & -0.26 to -0.10 & -0.34 to -0.03 \\ 
+  Arapaho & word-initial & -0.07 & -0.12 to -0.02 & -0.16 to  0.02 \\ 
+  Evenki & utterance-initial & -0.14 & -0.20 to -0.08 & -0.25 to -0.03 \\ 
+  Evenki & word-initial & -0.08 & -0.12 to -0.05 & -0.15 to -0.02 \\ 
+  Fanbyak & utterance-initial & -0.09 & -0.16 to -0.03 & -0.22 to  0.03 \\ 
+  Jejuan & utterance-initial & 0.16 &  0.08 to  0.24 &  0.02 to  0.31 \\ 
+  Lower Sorbian & utterance-initial & 0.14 &  0.06 to  0.23 & -0.01 to  0.30 \\ 
+  Lower Sorbian & word-initial & 0.06 &  0.02 to  0.10 & -0.02 to  0.14 \\ 
+  Mojeño Trinitario & utterance-initial & -0.09 & -0.16 to -0.01 & -0.23 to  0.05 \\ 
+  Resígaro & utterance-initial & -0.27 & -0.36 to -0.18 & -0.44 to -0.10 \\ 
+  Resígaro & word-initial & -0.08 & -0.13 to -0.03 & -0.17 to  0.01 \\ 
+  Ruuli & word-initial & -0.06 & -0.09 to -0.02 & -0.13 to  0.02 \\ 
+  Svan & utterance-initial & 0.09 &  0.03 to  0.16 & -0.03 to  0.22 \\ 
+  Urum & utterance-initial & 0.12 &  0.06 to  0.17 &  0.01 to  0.22 \\ 
+  Urum & word-initial & 0.09 &  0.06 to  0.12 &  0.03 to  0.14 \\ 
+  Vera'a & word-initial & -0.05 & -0.09 to -0.02 & -0.12 to  0.02 \\ 
+  Yali & utterance-initial & 0.18 &  0.11 to  0.26 &  0.05 to  0.32 \\ 
+  Yurakaré & utterance-initial & 0.09 &  0.04 to  0.15 & -0.01 to  0.20 \\ 
+  Yurakaré & word-initial & 0.06 &  0.03 to  0.09 &  0.00 to  0.12 \\ 
+   \hline
+\end{tabular}
+\caption{Parameter values for languages with the 89% HPDI outside the ROPE} 
+\label{table: slopes_lang}
+\end{table}
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{llrr}
+  \hline
+Level & Parameter & utterance-initial & word-initial \\ 
+  \hline
+Language & Intercept & -0.62 to -0.09 & -0.34 to  0.28 \\ 
+  Language & utterance-initial &  &  0.28 to  0.77 \\ 
+  Speaker & Intercept & -0.52 to -0.25 & -0.45 to -0.14 \\ 
+  Speaker & utterance-initial &  &  0.43 to  0.72 \\ 
+   \hline
+\end{tabular}
+\end{table}
+
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{llrll}
+  \hline
+Language & Parameter & Estimate & 89\% HPDI & 99.7\% HPDI \\ 
+  \hline
+Lower Sorbian & utterance-initial & 0.08 & 0.00 to 0.17 & -0.08 to 0.25 \\ 
+  Lower Sorbian & word-initial & 0.14 & 0.08 to 0.21 &  0.02 to 0.26 \\ 
+   \hline
+\end{tabular}
+\end{table}
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{llrll}
+  \hline
+speaker & Parameter & Estimate & 89\% HPDI & 99.7\% HPDI \\ 
+  \hline
+BPN & utterance-initial & 0.16 &  0.09 to 0.23 &  0.03 to 0.29 \\ 
+  EMZ & utterance-initial & 0.04 & -0.03 to 0.10 & -0.08 to 0.16 \\ 
+  FKM & utterance-initial & 0.11 &  0.04 to 0.18 & -0.02 to 0.24 \\ 
+  LRE & utterance-initial & 0.10 &  0.02 to 0.19 & -0.06 to 0.26 \\ 
+  BPN & word-initial & 0.18 &  0.13 to 0.23 &  0.09 to 0.27 \\ 
+  EMZ & word-initial & 0.12 &  0.08 to 0.17 &  0.04 to 0.21 \\ 
+  FKM & word-initial & 0.14 &  0.09 to 0.18 &  0.04 to 0.23 \\ 
+  LRE & word-initial & 0.14 &  0.08 to 0.20 &  0.03 to 0.25 \\ 
+   \hline
+\end{tabular}
+\end{table}
