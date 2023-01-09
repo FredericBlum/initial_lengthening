@@ -44,7 +44,7 @@ data <- initial_data %>% mutate(
 
 data %>% group_by(sound_class, voicing) %>% count()
 data %>% filter(sound_class == "vowel") %>% group_by(ph) %>% count()
-data %>% filter(sound_class == "geminate") %>% group_by(ph) %>% count() %>% arrange(n)
+data %>% filter(sound_class == "geminate") %>% group_by(Language, word_initial,ph) %>% filter(word_initial==1) %>% count() %>% arrange(-n)
 
 data %>% filter(sound_class == "unclear") %>% group_by(ph) %>% count() %>% arrange(n)
 data %>% filter(voicing == "unclear") %>% group_by(ph) %>% count() %>% arrange(n)
