@@ -8,7 +8,7 @@ source("cl_helper_functions.R")
 ###################################
 ###       Data                  ###
 ###################################
-data <- load_data('../data/consonant_data.csv', filter_long = T, n = 30, outlier_mad = 3)
+data <- load_data('../data/consonant_data.csv', n = 30, outlier_mad = 3)
 
 # check exclusion of long consonants; exclude both final positions
 # check exclusion of final consonants
@@ -20,8 +20,8 @@ phons <- data %>% group_by(Language, ph) %>% count() %>% arrange(n)
 ################################################
 tens <- data %>% 
   filter(duration %% 10 == 0) %>% 
-  group_by(duration, word_initial, utt_initial) %>% count() %>%
-  ggplot(aes(duration, n, col = word_initial))+
+  group_by(duration, initial) %>% count() %>%
+  ggplot(aes(duration, n, col = initial))+
   geom_point(size = 2) +
   scale_y_log10() +
   theme_grey(base_size = 11) +
@@ -33,8 +33,8 @@ tens <- data %>%
 
 non_tens <- data %>% 
   filter(duration %% 10 != 0) %>% 
-  group_by(duration, word_initial) %>% count() %>%
-  ggplot(aes(duration, n, col=word_initial))+
+  group_by(duration, initial) %>% count() %>%
+  ggplot(aes(duration, n, col=initial))+
   geom_point(size = 2) +
   scale_y_log10() +
   theme_grey(base_size = 11) +
@@ -49,7 +49,7 @@ ggsave("images/dataExpl_distr.png", distr, scale = 1,
        width = 2000, height = 2000, units = "px")
 
 dens_all <- data %>%
-  ggplot(aes(x = word_initial, y = duration, color = word_initial, fill = word_initial)) +
+  ggplot(aes(x = initial, y = duration, color = initial, fill = initial)) +
   geom_boxplot(width = .2, fill = "white", size = 1, outlier.shape = NA) +
   geom_half_point(side = "l", range_scale = .25, alpha = .5, size = 0.1) +
   stat_halfeye(adjust = 1, width = .5, color = NA, position = position_nudge(x = .15)) +
@@ -58,7 +58,7 @@ dens_all <- data %>%
   scale_color_viridis(discrete = TRUE, end = 0.7) +
   scale_y_log10(limits = c(30, 315), breaks = c(30, 40, 50, 60, 80, 100, 150, 200, 300), 
                 name = "duration in ms on log-axis") +
-  scale_x_discrete(labels = c("non-word_initial", "utterance-word_initial", "word-word_initial"))+
+  scale_x_discrete(labels = c("non-initial", "utterance-initial", "word-initial"))+
   xlab("") + theme(legend.position="none")
 
 ggsave("images/dataExpl_dens.png", dens_all, scale = 1,
@@ -68,11 +68,11 @@ ggsave("images/dataExpl_dens.png", dens_all, scale = 1,
 #####       Between-Languages Plots        #####
 ################################################
 violin_init <- data %>% 
-  ggplot(aes(y = duration, x = word_initial)) +
-  geom_violin(aes(fill = word_initial)) +
+  ggplot(aes(y = duration, x = initial)) +
+  geom_violin(aes(fill = initial)) +
   geom_boxplot(width = 0.5, 
                outlier.size = 1, outlier.color = "black", outlier.alpha = 0.3) +
-  facet_wrap(~Language, ncol = 3) +
+  # facet_wrap(~Language, ncol = 3) +
   scale_fill_viridis(discrete = TRUE, end = 0.7) +
   scale_y_log10(limits = c(30, 330), breaks = c(30, 70, 150, 300), 
                 name = "duration on log-axis") +

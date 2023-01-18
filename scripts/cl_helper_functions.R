@@ -1,16 +1,7 @@
 library(tidyverse)
 
-load_data <- function(csv_file, filter_long = F, n = 0, outlier_mad = 0) {
+load_data <- function(csv_file, n = 0, outlier_mad = 0) {
   data <- read_delim(csv_file, delim = ",")
-  
-  # filter long consonants
-  if (filter_long == T){
-    # lu_voicing <- read_delim("utils//voicing_phonemes.csv", delim = ",")
-    # voice_data <- data %>% left_join(lu_voicing) %>% filter(long == 0)
-    # number_long <- nrow(data) - nrow(voice_data)
-    # data <- voice_data
-    data <- data %>% filter(!grepl(":", ph))
-  }
   
   total_number <- data %>% nrow()
   
@@ -52,8 +43,8 @@ load_data <- function(csv_file, filter_long = F, n = 0, outlier_mad = 0) {
       word_initial = as.factor(word_initial)
     ) %>% 
     select(
-      duration, ph, word_initial, utt_initial, Language, speaker, 
-      z_logSpeechRate, z_logPhonWord, z_logWordFormFreq
+      duration, ph, initial, Language, speaker, sound_class,
+      z_logSpeechRate, z_logPhonWord, z_logWordFormFreq, fbc
     )
   # return filtered data
   return(mad_data)

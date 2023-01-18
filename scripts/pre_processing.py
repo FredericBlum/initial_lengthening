@@ -37,6 +37,7 @@ data = pd.read_csv(
 utt_level = []
 word_level = []
 final = []
+following_sound = []
 
 
 def initial_position(df):
@@ -68,6 +69,11 @@ def initial_position(df):
         else:
             final.append('0')
 
+        if pos < data.index[len(df) - 1] and df.loc[index, "wd_ID"] == df.loc[pos, "wd_ID"]:
+            following_sound.append(df.loc[pos, "ph"])
+        else:
+            following_sound.append("final")
+
     return utt_level, word_level
 
 
@@ -76,6 +82,7 @@ initial_position(data)
 data["word_initial"] = word_level
 data["utt_initial"] = utt_level
 data["final"] = final
+data["following_sound"] = following_sound
 
 
 ##################################################
@@ -146,8 +153,8 @@ data['WordCount'] = data.groupby(
 
 # data['lang_count'] = data.groupby("wd_ID").size().groupby(level=0).agg({'count(lang_count':'size'})
 
-#data['WordFreq'] = data['WordCount'] / data['PhonemesWord']
-#data['WordFormFreq'] = data['WordFreq'] / data['lang_count']
+# data['WordFreq'] = data['WordCount'] / data['PhonemesWord']
+# data['WordFormFreq'] = data['WordFreq'] / data['lang_count']
 
 # log: SpeechRate, WordFormFreq, PhonemesWord, Duration
 data['logDuration'] = round(np.log(data['duration']), 3)
