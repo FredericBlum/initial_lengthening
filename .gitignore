@@ -1,3 +1,5 @@
 data/
 *Rproj
 *.DS_Store
+.Rproj.user
+scripts/models/
