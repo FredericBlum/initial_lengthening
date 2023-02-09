@@ -48,6 +48,7 @@ data <- data %>%
     ph != "****",
     !(grepl(":", ph))
     ) %>% 
+  filter(!(utt_initial==1 & sound_class == "stops")) %>% 
   mutate(
     initial = ifelse(utt_initial==1, "utt_initial", ifelse(
       word_initial==1, "word_initial", "non_initial"

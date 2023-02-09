@@ -9,8 +9,7 @@ source("cl_helper_functions.R")
 
 
 ###################################################################
-cl_max_sep <- readRDS(file="../models/cl_max_small.rds")
-# cl_max_sep <- readRDS(file="../models/cl_priors.rds")
+cl_max_sep <- readRDS(file="models/cl_max_small.rds")
 
 rope_high=0.01
 rope_low=-0.01
@@ -29,19 +28,20 @@ hpdi_vals99 <- posterior_interval(cl_max_sep, prob=0.997) %>%
 para_vals <- posterior_summary(cl_max_sep) %>% 
   data.frame() %>% as_tibble(rownames="Parameter") %>% 
   left_join(hpdi_vals89) %>% left_join(hpdi_vals99) %>% 
-  mutate(Parameter=str_replace(Parameter, "utt", "utterance-initial"),
-         Parameter=str_replace(Parameter, "word", "word-initial"))%>%
-  mutate(Parameter=str_replace(Parameter, "_initial1", "")) 
+  mutate(Parameter=str_replace(Parameter, "utt_initial", "utterance-initial"),
+         Parameter=str_replace(Parameter, "word_initial", "word-initial"),
+         Parameter=str_replace(Parameter, "b_initial", "")) 
 
 rm(hpdi_vals89, hpdi_vals99)
 
 fix_eff <- para_vals %>% 
-  filter(Parameter == "b_word-initial"|Parameter == "b_utterance-initial") %>% 
-  mutate(Parameter=str_replace(Parameter, "b_", ""))
+  filter(Parameter == "word-initial"|Parameter == "utterance-initial")
 
 lang_params <- para_vals %>% 
   filter(grepl("^r_Language\\[.*", Parameter)) %>% 
-  mutate(Parameter=gsub("r_Language\\[(.*)(,-initial|,)(.*)]", "\\1__\\3", Parameter)) %>% 
+  mutate(Parameter=gsub("r_Language\\[(.*)(,-initial|,)(.*)]", "\\1__\\3", Parameter),
+         Parameter=str_replace(Parameter, "initialutterance", "utterance"),
+         Parameter=str_replace(Parameter, "initialword", "word")) %>% 
   separate(sep="__", col=Parameter, into=c("Language", "Parameter")) %>% 
   filter(Parameter != "Intercept") %>% 
   left_join(fix_eff, by="Parameter") %>% 
@@ -67,6 +67,34 @@ languages <- read_csv('./utils/languages.csv')
 pop_level <- c("b_Initialutterance-initial", "b_Initialword-initial", 
                 "b_z_logSpeechRate" , "b_z_logPhonWord",
                 "b_z_logWordFormFreq", "b_ConCluster")
+
+
+r_sound_class
+
+#########################################
+###   Sound Class analysis            ###
+#########################################
+
+consonant_data <- para_vals %>% filter(grepl("^r_sound_class", Parameter)) %>% 
+  mutate(Parameter = str_replace(Parameter, "^r_sound_class", ""),
+         Parameter = str_replace(Parameter, "\\[", ""),
+         Parameter = str_replace(Parameter, "\\]", "")) %>% 
+  separate(sep=",", col=Parameter, into=c("sound_class", "position")) %>% 
+  mutate(position = str_replace(position, "initial", ""),
+         position = str_replace(position, "-initial", "")) %>% 
+  arrange(sound_class)
+
+consonant_data %>% 
+  ggplot(aes(x=Estimate, y=paste(sound_class, position))) +
+  geom_linerange(aes(xmin=hpdi_low, xmax=hpdi_high)) + 
+  geom_pointrange(aes(xmin=hpdi_89_low, xmax=hpdi_89_high, color=position,
+                      alpha=1), size=1.2) +  
+  geom_vline(xintercept=0, color="red") +
+  annotate("rect", xmin=rope_low, xmax=rope_high, ymin=0, ymax=Inf, alpha=.2) +
+  scale_y_discrete(name=NULL) +
+  scale_color_viridis(discrete=T, end=0.7) +
+  scale_x_continuous(name=NULL) +
+  theme(legend.position="none")
 
 #########################################
 ###   Tables: Raw values              ###

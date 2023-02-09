@@ -6,15 +6,14 @@ library(ggplot2)
 library(brms)
 source("cl_helper_functions.R")
 
-data <- load_data('../data/consonant_data.csv', filter_long = T, n = 30, outlier_mad = 3)
+data <- load_data('../data/consonant_data.csv', n = 30, outlier_mad = 3)
 
-# cl_max_sep <- readRDS(file="../models/cl_max_nested.rds")
-cl_max_sep <- readRDS(file="../models/cl_max_small.rds")
+cl_max_sep <- readRDS(file="models/cl_max_small.rds")
 
 color_scheme_set("pink")
 
 duration_vals <- data %>% .$duration
-group_init <- data %>% .$word_initial
+group_init <- data %>% .$initial
 
 if (file.exists("../models/post_pred.rds")) {
   sim_data <- readRDS(file="../models/post_pred.rds")

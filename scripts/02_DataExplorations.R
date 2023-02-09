@@ -15,6 +15,8 @@ data <- load_data('../data/consonant_data.csv', n = 30, outlier_mad = 3)
 # create non-initial column for viz
 langs <- data %>% group_by(Language) %>% count() %>% arrange(Language)
 phons <- data %>% group_by(Language, ph) %>% count() %>% arrange(n)
+cons <- data %>% group_by(sound_class, initial) %>% count() %>% arrange(n)
+
 ################################################
 #####       Distribution Plots             #####
 ################################################
