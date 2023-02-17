@@ -9,7 +9,7 @@ source("cl_helper_functions.R")
 
 
 ###################################################################
-cl_max_sep <- readRDS(file="models/cl_max_small.rds")
+cl_max_sep <- readRDS(file="models/cl_max_tiny.rds")
 
 rope_high=0.01
 rope_low=-0.01
@@ -68,33 +68,67 @@ pop_level <- c("b_Initialutterance-initial", "b_Initialword-initial",
                 "b_z_logSpeechRate" , "b_z_logPhonWord",
                 "b_z_logWordFormFreq", "b_ConCluster")
 
-
-r_sound_class
-
 #########################################
 ###   Sound Class analysis            ###
 #########################################
 
-consonant_data <- para_vals %>% filter(grepl("^r_sound_class", Parameter)) %>% 
-  mutate(Parameter = str_replace(Parameter, "^r_sound_class", ""),
-         Parameter = str_replace(Parameter, "\\[", ""),
-         Parameter = str_replace(Parameter, "\\]", "")) %>% 
-  separate(sep=",", col=Parameter, into=c("sound_class", "position")) %>% 
-  mutate(position = str_replace(position, "initial", ""),
-         position = str_replace(position, "-initial", "")) %>% 
-  arrange(sound_class)
+sc_params <- para_vals %>% 
+  filter(grepl("^r_Language:sound_class\\[.*", Parameter)) %>% 
+  mutate(Parameter=gsub(
+    "^r_Language:sound_class\\[(.*)(,-initial|,)(.*)]",
+    "\\1__\\3",
+    Parameter),
+    Parameter=str_replace(Parameter, "initialutterance", "utterance"),
+    Parameter=str_replace(Parameter, "initialword", "word"),
+    Parameter=str_replace(Parameter, "__", "_")) %>% 
+  separate(sep="_", col=Parameter, into=c("Language", "SoundClass", "Parameter")) %>% 
+  filter(Parameter != "Intercept") %>% 
+  mutate(Language=str_replace(Language, "\\.", " ")) %>% 
+  left_join(lang_params, by=c("Language", "Parameter")) %>% 
+  transmute(
+    Language=Language, Parameter=Parameter, SoundClass = SoundClass,
+    Estimate=Estimate.x + Estimate.y,
+    hpdi_89_high=hpdi_89_high.x + hpdi_89_high.y,
+    hpdi_89_low=hpdi_89_low.x + hpdi_89_low.y,
+    hpdi_high=hpdi_high.x + hpdi_high.y,
+    hpdi_low=hpdi_low.x + hpdi_low.y
+  ) %>% 
+  mutate(outside=ifelse(hpdi_89_high < rope_low, TRUE, 
+                        ifelse(hpdi_89_low > rope_high, TRUE, FALSE)),
+         outside_99=ifelse(hpdi_high < rope_low, "yes", 
+                           ifelse(hpdi_low > rope_high, "yes", "no")))
 
-consonant_data %>% 
-  ggplot(aes(x=Estimate, y=paste(sound_class, position))) +
-  geom_linerange(aes(xmin=hpdi_low, xmax=hpdi_high)) + 
-  geom_pointrange(aes(xmin=hpdi_89_low, xmax=hpdi_89_high, color=position,
-                      alpha=1), size=1.2) +  
-  geom_vline(xintercept=0, color="red") +
-  annotate("rect", xmin=rope_low, xmax=rope_high, ymin=0, ymax=Inf, alpha=.2) +
-  scale_y_discrete(name=NULL) +
-  scale_color_viridis(discrete=T, end=0.7) +
-  scale_x_continuous(name=NULL) +
-  theme(legend.position="none")
+sc_params %>% 
+  filter(Parameter=="word-initial") %>% 
+  ggplot(aes(x=SoundClass, y=Estimate)) +
+  geom_crossbar(aes(ymin=hpdi_89_low, ymax=hpdi_89_high, fill=SoundClass,
+                    alpha=ifelse(outside==TRUE, 1, 0.1)), 
+                size=0.5, width=0.7, fatten=0) + 
+  geom_errorbar(aes(ymin=hpdi_low, ymax=hpdi_high, width=0.5)) +
+  geom_hline(yintercept=0, color="red", alpha=0.7, size=1)+
+  annotate("rect", ymin=rope_low, ymax=rope_high, xmin=0, xmax=Inf, alpha=.5) +
+  scale_fill_viridis(discrete=T, begin=0, end=0.75) +
+  facet_wrap(~Language, ncol=8) +
+  scale_x_discrete(name=NULL, labels=NULL) +
+  scale_y_continuous(breaks = c(0.3, 0, -0.3)) +
+  scale_alpha(guide="none") +
+  theme(legend.position='bottom') + labs(fill="")
+
+sc_params %>% 
+  filter(Parameter=="word-initial") %>% 
+  ggplot(aes(x=Language, y=Estimate)) +
+  geom_crossbar(aes(ymin=hpdi_89_low, ymax=hpdi_89_high, fill=SoundClass,
+                    alpha=ifelse(outside==TRUE, 1, 0.1)), 
+                size=0.5, width=0.7, fatten=0) + 
+  geom_errorbar(aes(ymin=hpdi_low, ymax=hpdi_high, width=0.5)) +
+  geom_hline(yintercept=0, color="red", alpha=0.7, size=1)+
+  annotate("rect", ymin=rope_low, ymax=rope_high, xmin=0, xmax=Inf, alpha=.5) +
+  scale_fill_viridis(discrete=T, begin=0, end=0.75) +
+  facet_wrap(~SoundClass, ncol=1) +
+  scale_x_discrete(name=NULL, labels=NULL) +
+  scale_y_continuous(breaks = c(0.3, 0, -0.3)) +
+  scale_alpha(guide="none") +
+  theme(legend.position='bottom') + labs(fill="")
 
 #########################################
 ###   Tables: Raw values              ###
