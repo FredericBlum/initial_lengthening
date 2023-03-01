@@ -8,7 +8,8 @@ cl_max_nested <-
   brm(data = data,
       family = lognormal(),
       formula = duration ~ 1 + initial + 
-        (1 + initial + fbc | Language / (sound_class + speaker)) +
+        (1 + initial + fbc | Language/speaker) +
+        (1 + initial | sound_class)
         z_logSpeechRate + z_logPhonWord + z_logWordFormFreq,
       prior = c(prior(normal(4.4, 0.2), class = Intercept),
                 prior(exponential(12), class = sigma),

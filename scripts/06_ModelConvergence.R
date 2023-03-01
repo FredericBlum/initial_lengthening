@@ -8,7 +8,7 @@ source("cl_helper_functions.R")
 
 data <- load_data('../data/consonant_data.csv', n = 30, outlier_mad = 3)
 
-cl_max_sep <- readRDS(file="models/cl_max_small.rds")
+cl_max <- readRDS(file="models/cl_max_tiny.rds")
 
 color_scheme_set("pink")
 
@@ -19,16 +19,16 @@ if (file.exists("../models/post_pred.rds")) {
   sim_data <- readRDS(file="../models/post_pred.rds")
 } else{
   print("Sorry, the file does not yet exist. This may take some time.")
-  sim_data <- posterior_predict(cl_max_sep, ndraws=4, cores=getOption("mc.cores", 4))
+  sim_data <- posterior_predict(cl_max, ndraws=4, cores=getOption("mc.cores", 4))
   saveRDS(sim_data, file="../models/post_pred_alt.rds")  
 }
 
 #########################################
 ###     model convergence             ###
 #########################################
-lp_max <- log_posterior(cl_max_sep)
-np_max <- nuts_params(cl_max_sep)
-posterior_max <- as.array(cl_max_sep)
+lp_max <- log_posterior(cl_max)
+np_max <- nuts_params(cl_max)
+posterior_max <- as.array(cl_max)
 
 # mcmc_pairs: up to 8 parameters, divergent transitions and collinearity between parameters
 pred_pairs <- mcmc_pairs(posterior_max, np=np_max, regex_pars=c("^b_"), 
@@ -43,7 +43,7 @@ zipfs_pairs <- mcmc_pairs(posterior_max, np=np_max, regex_pars=c("^b_z_"),
 ggsave('images/viz_pairsPredz.png', zipfs_pairs, scale=1.3,
        width=3000, height=2800, units="px")
 
-collinearity_pred <- as_draws_df(cl_max_sep) %>% 
+collinearity_pred <- as_draws_df(cl_max) %>% 
   select(b_z_logPhonWord:b_z_logWordFormFreq) %>% 
   cor()
 
@@ -62,7 +62,7 @@ eval_chains <- (both_traces /  both_ranks)
 ggsave('images/eval_chains.png', eval_chains, scale=1)
 
 ########################################
-rhats_max <- brms::rhat(cl_max_sep)
+rhats_max <- brms::rhat(cl_max)
 rhat_all <- mcmc_rhat(rhats_max) + xlab("R-hat value") +
   coord_cartesian(xlim=c(0.99995, 1.001)) +
   scale_x_continuous(breaks=seq(from=1, to=1.001, by=0.0002)) +
@@ -76,7 +76,7 @@ rhat_filter <- mcmc_rhat(rhat_val) + yaxis_text(hjust=1) +
   theme(legend.position="none")
 
 ###########################################
-neff_max <- neff_ratio(cl_max_sep)
+neff_max <- neff_ratio(cl_max)
 neff_all_plot <- mcmc_neff(neff_max, size=2) + 
   scale_x_continuous(breaks=seq(from=0, to=5, by=0.5)) +
   xlab("Effective sample size")  +

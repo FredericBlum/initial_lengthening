@@ -9,7 +9,7 @@ source("cl_helper_functions.R")
 
 
 ###################################################################
-cl_max_sep <- readRDS(file="models/cl_max_tiny.rds")
+model_fit <- readRDS(file="models/cl_max_tiny.rds")
 
 rope_high=0.01
 rope_low=-0.01
@@ -17,25 +17,24 @@ rope_low=-0.01
 #########################################
 ###     Parameters                    ###
 #########################################
-hpdi_vals89 <- posterior_interval(cl_max_sep, prob=0.89) %>% 
+hpdi_vals89 <- posterior_interval(model_fit, prob=0.89) %>% 
   data.frame() %>% as_tibble(rownames="Parameter") %>% 
   rename(hpdi_89_low=X5.5., hpdi_89_high=X94.5.)
 
-hpdi_vals99 <- posterior_interval(cl_max_sep, prob=0.997) %>% 
+hpdi_vals99 <- posterior_interval(model_fit, prob=0.997) %>% 
   data.frame() %>% as_tibble(rownames="Parameter") %>% 
   rename(hpdi_low=X0.15., hpdi_high=X99.85.)
 
-para_vals <- posterior_summary(cl_max_sep) %>% 
+para_vals <- posterior_summary(model_fit) %>% 
   data.frame() %>% as_tibble(rownames="Parameter") %>% 
   left_join(hpdi_vals89) %>% left_join(hpdi_vals99) %>% 
   mutate(Parameter=str_replace(Parameter, "utt_initial", "utterance-initial"),
          Parameter=str_replace(Parameter, "word_initial", "word-initial"),
          Parameter=str_replace(Parameter, "b_initial", "")) 
 
-rm(hpdi_vals89, hpdi_vals99)
-
 fix_eff <- para_vals %>% 
   filter(Parameter == "word-initial"|Parameter == "utterance-initial")
+fix_eff[3,] <-  list("fbc", 0, 0, 0, 0, 0, 0, 0, 0)
 
 lang_params <- para_vals %>% 
   filter(grepl("^r_Language\\[.*", Parameter)) %>% 
@@ -71,7 +70,6 @@ pop_level <- c("b_Initialutterance-initial", "b_Initialword-initial",
 #########################################
 ###   Sound Class analysis            ###
 #########################################
-
 sc_params <- para_vals %>% 
   filter(grepl("^r_Language:sound_class\\[.*", Parameter)) %>% 
   mutate(Parameter=gsub(
@@ -84,7 +82,7 @@ sc_params <- para_vals %>%
   separate(sep="_", col=Parameter, into=c("Language", "SoundClass", "Parameter")) %>% 
   filter(Parameter != "Intercept") %>% 
   mutate(Language=str_replace(Language, "\\.", " ")) %>% 
-  left_join(lang_params, by=c("Language", "Parameter")) %>% 
+  left_join(lang_params, by=c("Language", "Parameter")) %>%
   transmute(
     Language=Language, Parameter=Parameter, SoundClass = SoundClass,
     Estimate=Estimate.x + Estimate.y,
@@ -92,13 +90,13 @@ sc_params <- para_vals %>%
     hpdi_89_low=hpdi_89_low.x + hpdi_89_low.y,
     hpdi_high=hpdi_high.x + hpdi_high.y,
     hpdi_low=hpdi_low.x + hpdi_low.y
-  ) %>% 
+  ) %>%
   mutate(outside=ifelse(hpdi_89_high < rope_low, TRUE, 
                         ifelse(hpdi_89_low > rope_high, TRUE, FALSE)),
          outside_99=ifelse(hpdi_high < rope_low, "yes", 
                            ifelse(hpdi_low > rope_high, "yes", "no")))
 
-sc_params %>% 
+sc_per_lang_word <- sc_params %>% 
   filter(Parameter=="word-initial") %>% 
   ggplot(aes(x=SoundClass, y=Estimate)) +
   geom_crossbar(aes(ymin=hpdi_89_low, ymax=hpdi_89_high, fill=SoundClass,
@@ -114,8 +112,30 @@ sc_params %>%
   scale_alpha(guide="none") +
   theme(legend.position='bottom') + labs(fill="")
 
-sc_params %>% 
-  filter(Parameter=="word-initial") %>% 
+ggsave('images/sc_per_lang_word.png', sc_per_lang_word, scale=1,
+       width=3000, height=2000, units="px")
+
+sc_per_lang_utt <- sc_params %>% 
+  filter(Parameter=="utterance-initial") %>% 
+  ggplot(aes(x=SoundClass, y=Estimate)) +
+  geom_crossbar(aes(ymin=hpdi_89_low, ymax=hpdi_89_high, fill=SoundClass,
+                    alpha=ifelse(outside==TRUE, 1, 0.1)), 
+                size=0.5, width=0.7, fatten=0) + 
+  geom_errorbar(aes(ymin=hpdi_low, ymax=hpdi_high, width=0.5)) +
+  geom_hline(yintercept=0, color="red", alpha=0.7, size=1)+
+  annotate("rect", ymin=rope_low, ymax=rope_high, xmin=0, xmax=Inf, alpha=.5) +
+  scale_fill_viridis(discrete=T, begin=0, end=0.75) +
+  facet_wrap(~Language, ncol=8) +
+  scale_x_discrete(name=NULL, labels=NULL) +
+  scale_y_continuous(breaks = c(0.3, 0, -0.3)) +
+  scale_alpha(guide="none") +
+  theme(legend.position='bottom') + labs(fill="")
+
+ggsave('images/sc_per_lang_utt.png', sc_per_lang_utt, scale=1,
+       width=3000, height=2000, units="px")
+
+
+sc_per_param <- sc_params %>% 
   ggplot(aes(x=Language, y=Estimate)) +
   geom_crossbar(aes(ymin=hpdi_89_low, ymax=hpdi_89_high, fill=SoundClass,
                     alpha=ifelse(outside==TRUE, 1, 0.1)), 
@@ -124,11 +144,15 @@ sc_params %>%
   geom_hline(yintercept=0, color="red", alpha=0.7, size=1)+
   annotate("rect", ymin=rope_low, ymax=rope_high, xmin=0, xmax=Inf, alpha=.5) +
   scale_fill_viridis(discrete=T, begin=0, end=0.75) +
-  facet_wrap(~SoundClass, ncol=1) +
+  facet_grid(Parameter~SoundClass) +
   scale_x_discrete(name=NULL, labels=NULL) +
   scale_y_continuous(breaks = c(0.3, 0, -0.3)) +
   scale_alpha(guide="none") +
   theme(legend.position='bottom') + labs(fill="")
+
+ggsave('images/sc_per_param.png', sc_per_param, scale=1,
+       width=3000, height=2000, units="px")
+
 
 #########################################
 ###   Tables: Raw values              ###
@@ -163,10 +187,10 @@ print(xtable(corr), include.rownames=FALSE)
 #########################################
 ###    Overall areas                  ###
 #########################################
-np_max <- nuts_params(cl_max_sep)
-posterior_max <- as.array(cl_max_sep)
+np_max <- nuts_params(model_fit)
+posterior_max <- as.array(model_fit)
 
-overall_areas <- mcmc_areas(cl_max_sep, regex_pars=c("^b_Init", "^b_z_", "^b_ConCluster"),
+overall_areas <- mcmc_areas(model_fit, regex_pars=c("^b_Init", "^b_z_", "^b_ConCluster"),
              prob=0.89, prob_outer=0.997, point_est="mean") +
   geom_hline(yintercept=0, color="red", alpha=0.5, size=0.5)+
   annotate("rect", xmin=rope_low, xmax=rope_high, ymin=0, ymax=Inf, alpha=.3) +
@@ -193,7 +217,7 @@ word_init <- langWord %>%
   theme(legend.position="none")
 
 ggsave("images/viz_wordInit.png", word_init,
-       width=2000, height=1400, units="px")
+       width=2000, height=3000, units="px")
 
 ###################################################################
 utt_init <- langUtt %>% 
@@ -209,7 +233,26 @@ utt_init <- langUtt %>%
   theme(legend.position="none")
 
 ggsave("images/viz_uttInit.png", utt_init,
-       width=2000, height=1400, units="px")
+       width=2000, height=3000, units="px")
+
+combined <- lang_params %>% 
+  ggplot(aes(x=Parameter, y=Estimate)) +
+  geom_crossbar(aes(ymin=hpdi_89_low, ymax=hpdi_89_high, fill=Parameter,
+                    alpha=ifelse(outside==TRUE, 1, 0.1)), 
+                size=0.5, width=0.7, fatten=0) + 
+  geom_errorbar(aes(ymin=hpdi_low, ymax=hpdi_high, width=0.5)) +
+  geom_hline(yintercept=0, color="red", alpha=0.7, size=1)+
+  annotate("rect", ymin=rope_low, ymax=rope_high, xmin=0, xmax=Inf, alpha=.5) +
+  scale_fill_viridis(discrete=T, begin=0, end=0.75) +
+  facet_wrap(~Language, ncol=9) +
+  scale_x_discrete(name=NULL, labels=NULL) +
+  scale_y_continuous(breaks = c(0.3, 0, -0.3)) +
+  scale_alpha(guide="none") +
+  theme(legend.position='bottom') + labs(fill="")
+
+ggsave("images/viz_combined.png", combined,
+       width=3500, height=2500, units="px")
+
 
 ###################################################################
 both <- c("Beja", "Bora", "Cabécar", "Daakie", "Dolgan", "Fanbyak", "Goemai",
