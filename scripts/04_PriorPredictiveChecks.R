@@ -4,10 +4,10 @@ library(patchwork)
 library(tidyverse)
 library(tidybayes)
 library(viridis)
-source("cl_helper_functions.R")
 
-data <- load_data('../data/consonant_data.csv', filter_long = T, n = 30, outlier_mad = 3)
-
+data <- read_csv('../data/consonant_data.csv') %>% 
+  mutate(utt_initial = as.factor(utt_initial),
+         word_initial = as.factor(word_initial))
 
 cl_priors <- readRDS(file = "../models/cl_priors.rds")
 color_scheme_set("pink")

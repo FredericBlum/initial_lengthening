@@ -17,7 +17,7 @@ affricates <- c("dz\\", "tS", "ts_h", "tS_j", "dZ_j", "tS_>", "dz`", "ts`_h", "t
 fricatives <- c("B_o", "_j", "z_j", "G", "z\\", "h", "z`", "K", "X", "B", "z", "S", "R", "X:", "x:", "C", "S_j", "R_j", "X_>", "x", "s", "s:", "s\\", "S:", "f_w", "T", "s_j", "s`", "B_j", "v_j", "j\\", "Z", "v", "r\\_r", "r\\:_r", "X:_w", "X\\", "?\\", "p\\", "X_w", "s\\:", "SS", "ss", "ff", "s_h", "S_h", "f_h", "s\\_h", "h\\", "D", "f:", "S_j_h", "s_>", "h~", "Z_w", "s_w", "S_>", "S_w", "T:", "R_w", "s_h_w", "p\\:", "z_w", "f_j", "f", "")
 sibilants  <-  c("z_j", "z\\", "z`", "z", "S", "S_j", "s", "s:", "s\\", "S:", "s_j", "s`", "Z", "s\\:", "SS", "ss", "s_h", "S_h", "s\\_h", "S_j_h", "s_>", "z_w", "")
 
-data <- data %>% as_tibble() %>%  
+sc_data <- data %>% as_tibble() %>%  
   mutate(
   voicing = ifelse(
     ph %in% voiced_Cs, "voiced", ifelse(
@@ -29,20 +29,7 @@ data <- data %>% as_tibble() %>%
       ph %in% stops, "stops", ifelse(
         ph %in% fricatives, "fricatives", ifelse(
           ph %in% geminates, "geminate", ifelse(
-            ph %in% vowels, "vowel", "unclear"
-          )
-        )
-      )
-    )
-  ),
-  fbc = ifelse(
-    following_sound %in% vowels, 0, ifelse(
-      following_sound == "final", 0, 1
-    )
-  )
-) 
-
-data <- data %>% 
+            ph %in% vowels, "vowel", "unclear")))))) %>% 
   filter(
     !(sound_class %in% c("vowel", "geminate")),
     ph != "****",
@@ -50,36 +37,75 @@ data <- data %>%
     ) %>% 
   filter(!(utt_initial==1 & sound_class == "stops")) %>% 
   mutate(
-    initial = ifelse(utt_initial==1, "utt_initial", ifelse(
-      word_initial==1, "word_initial", "non_initial"
-    )),
+   # initial = ifelse(utt_initial==1, "utt_initial", ifelse(
+   #   word_initial==1, "word_initial", "non_initial"
+    #)),
     sound_class = paste(sound_class, voicing)
   )
 
-count_wds <- data %>% group_by(Language_ID) %>% 
+count_wds <- sc_data %>% group_by(Language_ID) %>% 
   summarise(TypesInLang = n_distinct(wd_ID))
 
-data <- data[sample(1:nrow(data)), ] %>% 
+freq_data <- sc_data[sample(1:nrow(sc_data)), ] %>% 
   mutate(Glottocode = Language_ID) %>% 
-  mutate(WordFormFreq = WordCount/PhonemesWord)
-
-filtered <- data %>% left_join(langs) %>% 
+  left_join(langs) %>% 
   left_join(count_wds) %>% 
   mutate(
+    WordFormFreq = WordCount/PhonemesWord,
     logWordFormFreq = log(WordFormFreq/TypesInLang),
     logSpeechRate = log(SpeechRate)
     )
 
 z_data <- data.frame()
-for(lang in unique(filtered$Language)) {
-  lang_data <- filtered %>% filter(Language == lang) %>% 
+for(lang in unique(freq_data$Language)) {
+  lang_data <- freq_data %>% filter(Language == lang) %>% 
     mutate(
       z_logSpeechRate = round((logSpeechRate - mean(logSpeechRate)) / sd(logSpeechRate), 3),
-           z_logWordFormFreq = round((logWordFormFreq - mean(logWordFormFreq)) / sd(logWordFormFreq), 3),
-           z_logPhonWord = round((logPhonWord - mean(logPhonWord)) / sd(logPhonWord), 3),
-           )
+      z_logWordFormFreq = round((logWordFormFreq - mean(logWordFormFreq)) / sd(logWordFormFreq), 3),
+      z_logPhonWord = round((logPhonWord - mean(logPhonWord)) / sd(logPhonWord), 3)
+      )
 
   z_data = rbind(z_data, lang_data)
 }  
+
+# criteria for filtering
+outlier_msd <- 3
+n <-  30
+reduced_data <- z_data %>% 
+    select(
+      duration, logDuration, ph, utt_initial, word_initial, Language, speaker,
+      sound_class, z_logSpeechRate, z_logPhonWord, z_logWordFormFreq, final
+    )
+
+total_number <- data %>% nrow()
+
+# filter minimum values
+duration_filtered <- reduced_data %>% filter(duration > n)
+number_dur <- reduced_data %>% filter(duration <= n) %>% nrow()
+cat(number_dur, "consonants have been excluded at", n, "ms and below.\n")
+
+nonfinal_data <- duration_filtered %>% filter(final != 1)
+
+z_data <- data.frame()
+for(lng in unique(nonfinal_data$Language)) {
+  lng_data <- nonfinal_data %>% filter(Language == lng)
+  
+  # filter outlier at certain 3x Standard Deviation around the mean
+  # Chose median() instead of mean() for MAD
+  msd_data <- lng_data %>% 
+    mutate(mean = mean(duration), sd = sd(duration),
+           sd_threshold = mean+outlier_msd*sd) %>% 
+    filter(duration < sd_threshold)
+  threshold_msd <- msd_data %>% pull(sd_threshold) %>% min()
+  cat(lng, threshold_msd, "\n")
+  
+  msd_data <- msd_data %>% 
+    mutate(
+      duration = (duration * 1000)/1000,
+      utt_initial = as.factor(utt_initial),
+      word_initial = as.factor(word_initial)
+    )
+  z_data = rbind(z_data, msd_data)
+}
 
 write_csv(z_data, '../data/consonant_data.csv')
