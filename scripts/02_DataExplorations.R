@@ -3,27 +3,28 @@ library(gghalves)
 library(tidyverse)
 library(patchwork)
 library(viridis)
-source("cl_helper_functions.R")
 
 ###################################
 ###       Data                  ###
 ###################################
-data <- load_data('../data/consonant_data.csv', n = 30, outlier_mad = 3)
+data <- read_csv('../data/consonant_data.csv') %>% 
+  mutate(utt_initial = as.factor(utt_initial),
+         word_initial = as.factor(word_initial))
 
 # check exclusion of long consonants; exclude both final positions
 # check exclusion of final consonants
 # create non-initial column for viz
 langs <- data %>% group_by(Language) %>% count() %>% arrange(Language)
 phons <- data %>% group_by(Language, ph) %>% count() %>% arrange(n)
-cons <- data %>% group_by(sound_class, initial) %>% count() %>% arrange(n)
+cons <- data %>% group_by(sound_class, utt_initial) %>% count() %>% arrange(n)
 
 ################################################
 #####       Distribution Plots             #####
 ################################################
 tens <- data %>% 
   filter(duration %% 10 == 0) %>% 
-  group_by(duration, initial) %>% count() %>%
-  ggplot(aes(duration, n, col = initial))+
+  group_by(duration, word_initial) %>% count() %>%
+  ggplot(aes(duration, n, col=word_initial))+
   geom_point(size = 2) +
   scale_y_log10() +
   theme_grey(base_size = 11) +
@@ -35,8 +36,8 @@ tens <- data %>%
 
 non_tens <- data %>% 
   filter(duration %% 10 != 0) %>% 
-  group_by(duration, initial) %>% count() %>%
-  ggplot(aes(duration, n, col=initial))+
+  group_by(duration, word_initial) %>% count() %>%
+  ggplot(aes(duration, n, col=word_initial))+
   geom_point(size = 2) +
   scale_y_log10() +
   theme_grey(base_size = 11) +
@@ -70,8 +71,8 @@ ggsave("images/dataExpl_dens.png", dens_all, scale = 1,
 #####       Between-Languages Plots        #####
 ################################################
 violin_init <- data %>% 
-  ggplot(aes(y = duration, x = initial)) +
-  geom_violin(aes(fill = initial)) +
+  ggplot(aes(y = duration, x = word_initial)) +
+  geom_violin(aes(fill = word_initial)) +
   geom_boxplot(width = 0.5, 
                outlier.size = 1, outlier.color = "black", outlier.alpha = 0.3) +
   # facet_wrap(~Language, ncol = 3) +

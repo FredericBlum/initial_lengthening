@@ -5,11 +5,10 @@ library(tidybayes)
 library(patchwork)
 library(viridis)
 library(xtable)
-source("cl_helper_functions.R")
 
 
 ###################################################################
-model_fit <- readRDS(file="models/cl_max_tiny.rds")
+model_fit <- readRDS(file="models/cl_max_small.rds")
 
 rope_high=0.01
 rope_low=-0.01
@@ -236,6 +235,7 @@ ggsave("images/viz_uttInit.png", utt_init,
        width=2000, height=3000, units="px")
 
 combined <- lang_params %>% 
+  filter(Parameter != "fbc") %>% 
   ggplot(aes(x=Parameter, y=Estimate)) +
   geom_crossbar(aes(ymin=hpdi_89_low, ymax=hpdi_89_high, fill=Parameter,
                     alpha=ifelse(outside==TRUE, 1, 0.1)), 

@@ -1,14 +1,15 @@
 library(tidyverse)
-source("cl_helper_functions.R")
 library(brms)
 
-data <- load_data('../data/consonant_data.csv', n = 30, outlier_mad = 3)
+data <- read_csv('../data/consonant_data.csv') %>% 
+  mutate(utt_initial = as.factor(utt_initial),
+         word_initial = as.factor(word_initial))
 
-cl_max_nested <- 
+cl_max <- 
   brm(data = data,
       family = lognormal(),
-      formula = duration ~ 1 + initial + 
-        (1 + initial + fbc | Language / (sound_class + speaker)) +
+      formula = duration ~ 1 + utt_initial + word_initial + 
+        (1 + utt_initial + word_initial | Language / (sound_class + speaker)) +
         z_logSpeechRate + z_logPhonWord + z_logWordFormFreq,
       prior = c(prior(normal(4.4, 0.2), class = Intercept),
                 prior(exponential(12), class = sigma),

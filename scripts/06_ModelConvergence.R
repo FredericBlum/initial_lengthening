@@ -4,9 +4,10 @@ library(posterior)
 library(bayesplot)
 library(ggplot2)
 library(brms)
-source("cl_helper_functions.R")
 
-data <- load_data('../data/consonant_data.csv', n = 30, outlier_mad = 3)
+data <- read_csv('../data/consonant_data.csv') %>% 
+  mutate(utt_initial = as.factor(utt_initial),
+         word_initial = as.factor(word_initial))
 
 cl_max <- readRDS(file="models/cl_max_tiny.rds")
 
