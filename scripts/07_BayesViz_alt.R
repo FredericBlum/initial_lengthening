@@ -8,7 +8,7 @@ library(xtable)
 
 
 ###################################################################
-model <- readRDS(file="models/cl_max_small.rds")
+model_fit <- readRDS(file="models/cl_max_small.rds")
 
 rope_high=0.01
 rope_low=-0.01
@@ -16,26 +16,30 @@ rope_low=-0.01
 #########################################
 ###     Parameters                    ###
 #########################################
-hpdi_vals89 <- posterior_interval(model, prob=0.89) %>% 
+hpdi_vals89 <- posterior_interval(model_fit, prob=0.89) %>% 
   data.frame() %>% as_tibble(rownames="Parameter") %>% 
   rename(hpdi_89_low=X5.5., hpdi_89_high=X94.5.)
 
-hpdi_vals99 <- posterior_interval(model, prob=0.997) %>% 
+hpdi_vals99 <- posterior_interval(model_fit, prob=0.997) %>% 
   data.frame() %>% as_tibble(rownames="Parameter") %>% 
   rename(hpdi_low=X0.15., hpdi_high=X99.85.)
 
-para_vals <- posterior_summary(model) %>% 
+para_vals <- posterior_summary(model_fit) %>% 
   data.frame() %>% as_tibble(rownames="Parameter") %>% 
   left_join(hpdi_vals89) %>% left_join(hpdi_vals99) %>% 
-  mutate(Parameter=str_replace(Parameter, "b_([a-z]*)_initial1", "\\1-initial")) 
+  mutate(Parameter=str_replace(Parameter, "utt_initial", "utterance-initial"),
+         Parameter=str_replace(Parameter, "word_initial", "word-initial"),
+         Parameter=str_replace(Parameter, "b_initial", "")) 
 
 fix_eff <- para_vals %>% 
-  filter(Parameter == "word-initial"|Parameter == "utt-initial")
+  filter(Parameter == "word-initial"|Parameter == "utterance-initial")
+fix_eff[3,] <-  list("fbc", 0, 0, 0, 0, 0, 0, 0, 0)
 
 lang_params <- para_vals %>% 
   filter(grepl("^r_Language\\[.*", Parameter)) %>% 
-  mutate(Parameter=gsub("r_Language\\[(.*)(,_initial1|,)(.*)]", "\\1__\\3", Parameter),
-         Parameter=str_replace(Parameter, "_initial1", "-initial")) %>% 
+  mutate(Parameter=gsub("r_Language\\[(.*)(,-initial|,)(.*)]", "\\1__\\3", Parameter),
+         Parameter=str_replace(Parameter, "initialutterance", "utterance"),
+         Parameter=str_replace(Parameter, "initialword", "word")) %>% 
   separate(sep="__", col=Parameter, into=c("Language", "Parameter")) %>% 
   filter(Parameter != "Intercept") %>% 
   left_join(fix_eff, by="Parameter") %>% 
@@ -54,22 +58,25 @@ lang_params <- para_vals %>%
          Language=str_replace(Language, "\\.", " "))
 
 langWord <- lang_params %>% filter(Parameter == "word-initial")
-langUtt <- lang_params %>% filter(Parameter == "utt-initial")
+langUtt <- lang_params %>% filter(Parameter == "utterance-initial")
 
 languages <- read_csv('./utils/languages.csv')
 
-pop_level <- c("b_Initialutt-initial", "b_Initialword-initial", 
+pop_level <- c("b_Initialutterance-initial", "b_Initialword-initial", 
                 "b_z_logSpeechRate" , "b_z_logPhonWord",
-                "b_z_logWordFormFreq")
+                "b_z_logWordFormFreq", "b_ConCluster")
 
 #########################################
 ###   Sound Class analysis            ###
 #########################################
 sc_params <- para_vals %>% 
   filter(grepl("^r_Language:sound_class\\[.*", Parameter)) %>% 
-  mutate(
-    Parameter=gsub("^r_Language:sound_class\\[(.*)(,-initial|,)(.*)]","\\1__\\3",Parameter),
-    Parameter=str_replace(Parameter, "_initial1", "-initial"),
+  mutate(Parameter=gsub(
+    "^r_Language:sound_class\\[(.*)(,-initial|,)(.*)]",
+    "\\1__\\3",
+    Parameter),
+    Parameter=str_replace(Parameter, "initialutterance", "utterance"),
+    Parameter=str_replace(Parameter, "initialword", "word"),
     Parameter=str_replace(Parameter, "__", "_")) %>% 
   separate(sep="_", col=Parameter, into=c("Language", "SoundClass", "Parameter")) %>% 
   filter(Parameter != "Intercept") %>% 
@@ -108,7 +115,7 @@ ggsave('images/sc_per_lang_word.png', sc_per_lang_word, scale=1,
        width=3000, height=2000, units="px")
 
 sc_per_lang_utt <- sc_params %>% 
-  filter(Parameter=="utt-initial") %>% 
+  filter(Parameter=="utterance-initial") %>% 
   ggplot(aes(x=SoundClass, y=Estimate)) +
   geom_crossbar(aes(ymin=hpdi_89_low, ymax=hpdi_89_high, fill=SoundClass,
                     alpha=ifelse(outside==TRUE, 1, 0.1)), 
@@ -126,13 +133,14 @@ sc_per_lang_utt <- sc_params %>%
 ggsave('images/sc_per_lang_utt.png', sc_per_lang_utt, scale=1,
        width=3000, height=2000, units="px")
 
+
 sc_per_param <- sc_params %>% 
   ggplot(aes(x=Language, y=Estimate)) +
   geom_crossbar(aes(ymin=hpdi_89_low, ymax=hpdi_89_high, fill=SoundClass,
                     alpha=ifelse(outside==TRUE, 1, 0.1)), 
                 size=0.5, width=0.7, fatten=0) + 
   geom_errorbar(aes(ymin=hpdi_low, ymax=hpdi_high, width=0.5)) +
-  geom_hline(yintercept=0, color="red", alpha=0.7, linewidth=1)+
+  geom_hline(yintercept=0, color="red", alpha=0.7, size=1)+
   annotate("rect", ymin=rope_low, ymax=rope_high, xmin=0, xmax=Inf, alpha=.5) +
   scale_fill_viridis(discrete=T, begin=0, end=0.75) +
   facet_grid(Parameter~SoundClass) +
@@ -178,14 +186,14 @@ print(xtable(corr), include.rownames=FALSE)
 #########################################
 ###    Overall areas                  ###
 #########################################
-np_max <- nuts_params(model)
-posterior_max <- as.array(model)
+np_max <- nuts_params(model_fit)
+posterior_max <- as.array(model_fit)
 
-overall_areas <- mcmc_areas(model, regex_pars=c("^b_Init", "^b_z_", "^b_ConCluster"),
+overall_areas <- mcmc_areas(model_fit, regex_pars=c("^b_Init", "^b_z_", "^b_ConCluster"),
              prob=0.89, prob_outer=0.997, point_est="mean") +
   geom_hline(yintercept=0, color="red", alpha=0.5, size=0.5)+
   annotate("rect", xmin=rope_low, xmax=rope_high, ymin=0, ymax=Inf, alpha=.3) +
-  scale_y_discrete(labels=c('utt-initial','Word-initial','Speech rate', 
+  scale_y_discrete(labels=c('Utterance-initial','Word-initial','Speech rate', 
                               'Phones per word', 'Word-form frequency', 'Consonant cluster')) +
   scale_x_continuous(name="Effect on log-scale") + theme_bw()
 
@@ -195,8 +203,7 @@ ggsave('images/viz_overall.png', overall_areas, scale=1,
 #########################################
 ###     Language plots                ###
 #########################################
-word_init <- lang_params %>% 
-  filter(Parameter == "word-initial") %>% 
+word_init <- langWord %>% 
   ggplot(aes(x=Estimate, y=reorder(Language, Estimate))) +
   geom_linerange(aes(xmin=hpdi_low, xmax=hpdi_high)) + 
   geom_pointrange(aes(xmin=hpdi_89_low, xmax=hpdi_89_high, color=Parameter,
@@ -212,8 +219,7 @@ ggsave("images/viz_wordInit.png", word_init,
        width=2000, height=3000, units="px")
 
 ###################################################################
-utt_init <- lang_params %>% 
-  filter(Parameter == "utt-initial") %>% 
+utt_init <- langUtt %>% 
   ggplot(aes(x=Estimate, y=reorder(Language, Estimate))) +
   geom_linerange(aes(xmin=hpdi_low, xmax=hpdi_high)) + 
   geom_pointrange(aes(xmin=hpdi_89_low, xmax=hpdi_89_high, color=Parameter,
@@ -229,12 +235,13 @@ ggsave("images/viz_uttInit.png", utt_init,
        width=2000, height=3000, units="px")
 
 combined <- lang_params %>% 
+  filter(Parameter != "fbc") %>% 
   ggplot(aes(x=Parameter, y=Estimate)) +
   geom_crossbar(aes(ymin=hpdi_89_low, ymax=hpdi_89_high, fill=Parameter,
                     alpha=ifelse(outside==TRUE, 1, 0.1)), 
                 size=0.5, width=0.7, fatten=0) + 
   geom_errorbar(aes(ymin=hpdi_low, ymax=hpdi_high, width=0.5)) +
-  geom_hline(yintercept=0, color="red", alpha=0.7, linewidth=1)+
+  geom_hline(yintercept=0, color="red", alpha=0.7, size=1)+
   annotate("rect", ymin=rope_low, ymax=rope_high, xmin=0, xmax=Inf, alpha=.5) +
   scale_fill_viridis(discrete=T, begin=0, end=0.75) +
   facet_wrap(~Language, ncol=9) +
@@ -382,9 +389,9 @@ ggsave("images/viz_speakers.png", speakers_combined, scale=1,
 short_word_spk <- speaker_variation %>% filter(Language %in% c("Ruuli", "Vera'a"),
                                                Parameter == "word-initial")
 long_utt_spk <-  speaker_variation %>% filter(Language %in% c("Jejuan", "Svan", "Yali"),
-                                              Parameter == "utt-initial")
+                                              Parameter == "utterance-initial")
 short_utt_spk <- speaker_variation %>% filter(Language %in% c("Fanbyak", "Mojeño Trinitario"),
-                                              Parameter == "utt-initial")
+                                              Parameter == "utterance-initial")
 
 short_word_plot <- short_word_spk %>% 
   ggplot(aes(x=speaker, y=Estimate)) +
