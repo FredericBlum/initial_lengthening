@@ -8,7 +8,7 @@ library(xtable)
 
 
 ###################################################################
-model <- readRDS(file="models/cl_max_small.rds")
+model <- readRDS(file="models/cl_max_tiny.rds")
 
 rope_high=0.01
 rope_low=-0.01
@@ -58,7 +58,7 @@ langUtt <- lang_params %>% filter(Parameter == "utt-initial")
 
 languages <- read_csv('./utils/languages.csv')
 
-pop_level <- c("b_Initialutt-initial", "b_Initialword-initial", 
+pop_level <- c("utt-initial", "word-initial", 
                 "b_z_logSpeechRate" , "b_z_logPhonWord",
                 "b_z_logWordFormFreq")
 
@@ -152,7 +152,6 @@ fixed_effects <- para_vals %>% filter(Parameter %in% pop_level) %>%
   mutate(Estimate=round(Estimate, 2),
          Parameter=str_replace(Parameter, "b_Initial", ""),
          Parameter=str_replace(Parameter, "b_z_log", ""),
-         Parameter=str_replace(Parameter, "b_ConCluster", "Consonant cluster"),
          Parameter=str_replace(Parameter, "PhonesWord", "phones per word"),
          Parameter=str_replace(Parameter, "WordFormFreq", "word-form frequency"), 
          "99.7% HPDI"=paste(format(round(hpdi_low, 2), nsmall=2), "to", 
@@ -181,16 +180,16 @@ print(xtable(corr), include.rownames=FALSE)
 np_max <- nuts_params(model)
 posterior_max <- as.array(model)
 
-overall_areas <- mcmc_areas(model, regex_pars=c("^b_Init", "^b_z_", "^b_ConCluster"),
+overall_areas <- mcmc_areas(model, regex_pars=c("^b_(utt|word)_initial1$", "log"),
              prob=0.89, prob_outer=0.997, point_est="mean") +
   geom_hline(yintercept=0, color="red", alpha=0.5, size=0.5)+
   annotate("rect", xmin=rope_low, xmax=rope_high, ymin=0, ymax=Inf, alpha=.3) +
-  scale_y_discrete(labels=c('utt-initial','Word-initial','Speech rate', 
-                              'Phones per word', 'Word-form frequency', 'Consonant cluster')) +
+  scale_y_discrete(labels=c('Utterance-initial','Word-initial','Speech rate', 
+                            'Phones per word', 'Word-form frequency')) +
   scale_x_continuous(name="Effect on log-scale") + theme_bw()
 
 ggsave('images/viz_overall.png', overall_areas, scale=1,
-       width=2000, height=1200, units="px")
+       width=2000, height=1000, units="px")
 
 #########################################
 ###     Language plots                ###
@@ -229,76 +228,24 @@ ggsave("images/viz_uttInit.png", utt_init,
        width=2000, height=3000, units="px")
 
 combined <- lang_params %>% 
+  mutate(Parameter = str_replace(Parameter, "utt-", "utterance-")) %>% 
   ggplot(aes(x=Parameter, y=Estimate)) +
   geom_crossbar(aes(ymin=hpdi_89_low, ymax=hpdi_89_high, fill=Parameter,
                     alpha=ifelse(outside==TRUE, 1, 0.1)), 
                 size=0.5, width=0.7, fatten=0) + 
   geom_errorbar(aes(ymin=hpdi_low, ymax=hpdi_high, width=0.5)) +
-  geom_hline(yintercept=0, color="red", alpha=0.7, linewidth=1)+
-  annotate("rect", ymin=rope_low, ymax=rope_high, xmin=0, xmax=Inf, alpha=.5) +
+  # geom_hline(yintercept=0, color="red", alpha=0.5, linewidth=1)+
+  annotate("rect", ymin=rope_low, ymax=rope_high, xmin=0, xmax=Inf,
+           alpha=.8) +
   scale_fill_viridis(discrete=T, begin=0, end=0.75) +
-  facet_wrap(~Language, ncol=9) +
+  facet_wrap(~Language, ncol=6) +
   scale_x_discrete(name=NULL, labels=NULL) +
   scale_y_continuous(breaks = c(0.3, 0, -0.3)) +
   scale_alpha(guide="none") +
   theme(legend.position='bottom') + labs(fill="")
 
 ggsave("images/viz_combined.png", combined,
-       width=3500, height=2500, units="px")
-
-
-###################################################################
-both <- c("Beja", "Bora", "Cabécar", "Daakie", "Dolgan", "Fanbyak", "Goemai",
-          "Gorwaa", "Hoocak", "Kamas", "Komnzo", "Mojeño Trinitario", "Movima",
-          "N||ng", "Pnar", "Sadu", "Savosavo", "Tabaq", "Teop", "Urum",
-          "Vera'a", "Warlpiri", "Yucatec Maya", "Yurakaré")
-
-only_word <- c("English", "French", "Jahai", "Jejuan", "Kakabe", "Light Warlpiri",
-               "Lower Sorbian", "Nisvai", "Northern Kurdish", "Sanzhi Dargwa",
-               "Svan", "Tabarasan", "Yongning Na")
-
-only_utt <- c("Anal", "Arapaho", "Asimjeeg Datooga", "Dalabon", "Evenki",
-              "Northern Alta", "Resígaro", "Sumi")
-
-others <- c("Bainounk Gujaher", "Cashinahua", "Nafsan", "Ruuli", "Texistepec Popoluca", "Yali")
-
-
-utt_initial <- lang_params %>% 
-  filter(Language %in% only_utt) %>% 
-  ggplot(aes(x=Parameter, y=Estimate)) +
-  geom_crossbar(aes(ymin=hpdi_89_low, ymax=hpdi_89_high, fill=Parameter,
-                    alpha=ifelse(outside==TRUE, 1, 0.1)), 
-                  size=0.5, width=0.7, fatten=0) + 
-  geom_errorbar(aes(ymin=hpdi_low, ymax=hpdi_high, width=0.5)) +
-  geom_hline(yintercept=0, color="red", alpha=0.7, size=1)+
-  annotate("rect", ymin=rope_low, ymax=rope_high, xmin=0, xmax=Inf, alpha=.5) +
-  scale_fill_viridis(discrete=T, begin=0, end=0.75) +
-  facet_wrap(~Language, ncol=8) +
-  scale_x_discrete(name=NULL, labels=NULL) +
-  scale_y_continuous(breaks = c(0.3, 0, -0.3)) +
-  scale_alpha(guide="none") +
-  theme(legend.position='bottom') + labs(fill="")
-
-word_initial <- lang_params %>% 
-  filter(Language %in% only_word) %>% 
-  ggplot(aes(x=Parameter, y=Estimate)) +
-  geom_crossbar(aes(ymin=hpdi_89_low, ymax=hpdi_89_high, fill=Parameter,
-                    alpha=ifelse(outside==TRUE, 1, 0.1)), 
-                size=0.5, width=0.7, fatten=0) + 
-  geom_errorbar(aes(ymin=hpdi_low, ymax=hpdi_high, width=0.5)) +
-  geom_hline(yintercept=0, color="red", alpha=0.7, size=1)+
-  annotate("rect", ymin=rope_low, ymax=rope_high, xmin=0, xmax=Inf, alpha=.5) +
-  scale_fill_viridis(discrete=T, begin=0, end=0.75) +
-  facet_wrap(~Language, ncol=8) +
-  scale_x_discrete(name=NULL, labels=NULL) +
-  scale_y_continuous(breaks = c(0.3, 0, -0.3)) +
-  scale_alpha(guide="none") +
-  theme(legend.position='bottom') + labs(fill="")
-
-comb_one <- (word_initial/utt_initial) + 
-  plot_layout(guides = "collect", heights=c(0.66, 0.33)) & theme(legend.position = "bottom")
-ggsave("images/viz_lang_one.png", comb_one, scale=1,
-       width=2500, height=1700, units="px")
+       width=3000, height=4000, scale=0.8, units="px")
 
 #########################################
 ###     Speaker parameters            ###
@@ -307,10 +254,10 @@ lang_estimates <- lang_params %>% select(Language, Parameter, Estimate) %>%
   mutate(Language=str_replace(Language, "Mojeño.Trinitario", "Mojeño Trinitario"))
 
 speaker_variation <- para_vals %>% 
-  filter(grepl("^r_.*speaker.*initial]", .$Parameter)) %>%
-  mutate(Parameter=gsub("r_Language:speaker\\[(.*)(,-initial|,)(.*)]", "\\1__\\3", Parameter)) %>% 
+  filter(grepl("^r.*speaker", .$Parameter)) %>%
+  mutate(Parameter=gsub("r_Language:speaker\\[(.*)()(.*)]", "\\1__\\3", Parameter)) %>% 
   separate(sep="__", col=Parameter, into=c("speaker", "Parameter")) %>% 
-  separate(sep="_[a-z]*[0-9]*", col=speaker, into=c("Language", "speaker")) %>% 
+  separate(sep="_[a-z]*[0-9]*_", col=speaker, into=c("Language", "speaker")) %>% 
   mutate(Language=str_replace(Language, "\\.", " ")) %>% 
   left_join(lang_params, by=c("Language", "Parameter")) %>% 
   transmute(Language=Language, speaker=speaker, Parameter=Parameter,
@@ -326,11 +273,7 @@ speaker_variation <- para_vals %>%
 #########################################
 ###     Speaker plots                 ###
 #########################################
-spk_low <- speaker_variation %>% filter(Language %in% c("Yurakaré", "Lower.Sorbian", "Resígaro"))
-spk_high <- speaker_variation %>% filter(Language %in% c("Arapaho", "Evenki"))
-spk_sorb <- speaker_variation %>% filter(Language == "Lower Sorbian")
-
-speaker_plot <- spk_high %>% 
+speaker_plot <- speaker_variation %>% 
   ggplot(aes(x=speaker, y=Estimate)) +
   geom_crossbar(aes(ymin=hpdi_89_low, ymax=hpdi_89_high, fill=Language,
                     alpha=ifelse(outside == 1, 1, 0.1)), 
