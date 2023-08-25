@@ -14,14 +14,19 @@ cl_max <- readRDS(file="models/cl_max_tiny.rds")
 color_scheme_set("pink")
 
 duration_vals <- data %>% .$duration
-group_init <- data %>% .$initial
+group_init <- data %>% 
+  mutate(initial = ifelse(
+    utt_initial==1, "utt", ifelse(
+      word_initial==1, "word", "other"
+  ))) %>% 
+  select(initial) %>% as.list()
 
 if (file.exists("../models/post_pred.rds")) {
-  sim_data <- readRDS(file="../models/post_pred.rds")
+  sim_data <- readRDS(file="models/post_pred.rds")
 } else{
   print("Sorry, the file does not yet exist. This may take some time.")
-  sim_data <- posterior_predict(cl_max, ndraws=4, cores=getOption("mc.cores", 4))
-  saveRDS(sim_data, file="../models/post_pred_alt.rds")  
+  sim_data <- posterior_predict(cl_max, ndraws=8, cores=getOption("mc.cores", 4))
+  saveRDS(sim_data, file="models/post_pred.rds")  
 }
 
 #########################################
