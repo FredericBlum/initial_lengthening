@@ -1,7 +1,7 @@
 library(tidyverse)
 library(brms)
 
-data <- read_tsv('../data/consonant_lengthening.csv') %>% 
+data <- read_tsv('../data/res.tsv') %>% 
   filter(duration>0.03) %>% 
   mutate(duration=duration*1000,
          word_form_freq = freq/count,
