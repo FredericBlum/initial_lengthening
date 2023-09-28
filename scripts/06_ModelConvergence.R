@@ -5,15 +5,16 @@ library(bayesplot)
 library(ggplot2)
 library(brms)
 
-data <- read_csv('../data/consonant_data.csv') %>% 
-  mutate(utt_initial = as.factor(utt_initial),
-         word_initial = as.factor(word_initial))
+data <- read_tsv('../data/res.tsv') %>% 
+  mutate(sound_class = paste(voicing, sound_class),
+         word_initial = as.factor(word_initial),
+         utt_initial = as.factor(utt_initial))
 
 cl_max <- readRDS(file="models/cl_max_tiny.rds")
 
 color_scheme_set("pink")
 
-duration_vals <- data %>% .$duration
+duration_vals <- data %>% .$Duration
 group_init <- data %>% 
   mutate(initial = ifelse(
     utt_initial==1, "utt", ifelse(
@@ -25,7 +26,7 @@ if (file.exists("../models/post_pred.rds")) {
   sim_data <- readRDS(file="models/post_pred.rds")
 } else{
   print("Sorry, the file does not yet exist. This may take some time.")
-  sim_data <- posterior_predict(cl_max, ndraws=8, cores=getOption("mc.cores", 4))
+  sim_data <- posterior_predict(cl_max, ndraws=8, cores=getOption("mc.cores", 8))
   saveRDS(sim_data, file="models/post_pred.rds")  
 }
 
