@@ -5,14 +5,19 @@ library(rnaturalearthdata)
 library(viridis)
 library(knitr)
 library(xtable)
-source("cl_helper_functions.R")
 
 ###################################
-data <- load_data('./utils/consonant_data.csv', filter_long=T, sample=T, n=30, 
-                  outlier_mad=3, distance_pause=-3)
+data <- read_tsv('../data/res.tsv') %>% 
+  mutate(sound_class=paste(voicing, sound_class),
+         word_initial=as.factor(word_initial),
+         utt_initial=as.factor(utt_initial),
+         initial=ifelse(
+           utt_initial==1, "uttertance-initial", ifelse(
+             word_initial==1, "word-initial", "other"
+           )))
 
 lang_vec <- unique(data$Language)
-languages <- read_csv('../../doreco/cldf/languages.csv')
+languages <- read_csv('languages.csv')
 
 ###################################
 ###     Preprocessing numbers   ###
@@ -20,11 +25,11 @@ languages <- read_csv('../../doreco/cldf/languages.csv')
 count_speaker <- data %>% group_by(Language) %>% 
   summarise("speakers"=n_distinct(speaker))
 
-count_pos <- data %>% group_by(Language, Initial) %>% count() %>% 
-  pivot_wider(names_from=Initial, values_from=n) %>% ungroup()
+count_pos <- data %>% group_by(Language, initial) %>% count() %>% 
+  pivot_wider(names_from=initial, values_from=n) %>% ungroup()
 
 count_table <- count_pos %>% 
-  mutate(total=NonInitial + UttInitial + WordInitial) %>% 
+  mutate(total=Noninitial + Uttinitial + Wordinitial) %>% 
   left_join(count_speaker, by="Language") %>%
   xtable(caption="Number of speakers and data per position in each language",
          label="table: data")
