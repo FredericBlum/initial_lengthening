@@ -8,7 +8,7 @@ library(xtable)
 
 
 ###################################################################
-model <- readRDS(file="models/cl_max_final.rds")
+model <- readRDS(file="models/cl_max.rds")
 
 rope_high=0.01
 rope_low=-0.01
@@ -66,6 +66,111 @@ pop_level <- c("utt-initial", "word-initial",
                 "b_z_logWordFormFreq")
 
 #########################################
+###   Tables: Raw values              ###
+#########################################
+fixed_effects <- para_vals %>% filter(Parameter %in% pop_level) %>% 
+  mutate(Estimate=round(Estimate, 2),
+         Parameter=str_replace(Parameter, "b_Initial", ""),
+         Parameter=str_replace(Parameter, "b_z_log", ""),
+         Parameter=str_replace(Parameter, "PhonesWord", "phones per word"),
+         Parameter=str_replace(Parameter, "WordFormFreq", "word-form frequency"), 
+         "95% HPDI"=paste(format(round(hpdi_low, 2), nsmall=2), "to", 
+                              format(round(hpdi_high, 2), nsmall=2))) %>%
+  select(Parameter, Estimate, "95% HPDI") %>% 
+  xtable(caption="95% HPDI of the population-level predictors",
+         label="table: fixed_effects")
+print(xtable(fixed_effects), include.rownames=FALSE)
+
+corr <- para_vals %>% filter(str_detect(para_vals$Parameter, "cor")) %>% 
+  mutate(#Estimate=round(Estimate, 2),
+         Parameter=str_replace(Parameter, "Speaker", "Speaker"),
+         "80% HPDI"=paste(format(round(hpdi_80_low, 2), nsmall=2), "to", 
+                            format(round(hpdi_80_high, 2), nsmall=2))) %>% 
+  select(Parameter, "80% HPDI") %>% 
+  separate(sep="__", col=Parameter, into=c("Level", "Parameter", "Parameter2")) %>% 
+  mutate(Level=str_replace(Level, "cor_", ""),
+         Parameter=str_replace(Parameter, "Initial", ""),
+         Parameter2=str_replace(Parameter2, "Initial", "")) %>% 
+  pivot_wider(names_from="Parameter2", values_from="80% HPDI") 
+print(xtable(corr), include.rownames=FALSE)
+
+#########################################
+###    Overall areas                  ###
+#########################################
+np_max <- nuts_params(model)
+posterior_max <- as.array(model)
+
+overall_areas <- mcmc_areas(model, regex_pars=c("^b_(utt|word)_initial1$", "z_"),
+             prob=0.89, prob_outer=0.997, point_est="mean") +
+  geom_hline(yintercept=0, color="red", alpha=0.5, size=1)+
+  annotate("rect", xmin=rope_low, xmax=rope_high, ymin=0, ymax=Inf, alpha=.3) +
+  scale_y_discrete(labels=c('Utterance-initial','Word-initial','Speech rate', 
+                            'Phones per word', 'Word-form frequency')) +
+  scale_x_continuous(name="Effect on log-scale") + theme_bw()
+
+ggsave('images/viz_overall.png', overall_areas, scale=1,
+       width=2000, height=1000, units="px")
+
+#########################################
+###     Language plots              ###
+#########################################
+word_init <- lang_params %>% 
+  filter(Parameter == "word-initial") %>% 
+  ggplot(aes(x=Estimate, y=reorder(Language, Estimate))) +
+  geom_errorbar(aes(xmin=hpdi_low, xmax=hpdi_high)) + 
+  geom_crossbar(aes(
+    xmin=hpdi_80_low, xmax=hpdi_80_high, fill=Parameter,
+    alpha=ifelse(outside == 1, 0.8, 0.5)),
+    size=1, fatten=2, linewidth=0.7) +  
+  geom_vline(xintercept=0, color="red") +
+  annotate("rect", xmin=rope_low, xmax=rope_high, ymin=0, ymax=Inf, alpha=.2) +
+  scale_y_discrete(name=NULL) +
+  scale_fill_viridis(discrete=T) +
+  scale_x_continuous(name=NULL) +
+  theme(legend.position="none")
+
+ggsave("images/viz_wordInit.png", word_init,
+       width=2000, height=2500, units="px")
+
+###################################################################
+utt_init <- lang_params %>%
+  filter(Parameter == "utt-initial") %>% 
+  ggplot(aes(x=Estimate, y=reorder(Language, Estimate))) +
+  geom_errorbar(aes(xmin=hpdi_low, xmax=hpdi_high)) + 
+  geom_crossbar(aes(
+    xmin=hpdi_80_low, xmax=hpdi_80_high, fill=Parameter,
+    alpha=ifelse(outside == 1, 0.8, 0.5)),
+    size=1, fatten=2, linewidth=0.7) +
+  geom_vline(xintercept=0, color="red") +
+  annotate("rect", xmin=rope_low, xmax=rope_high, ymin=0, ymax=Inf, alpha=.2) +
+  scale_y_discrete(name=NULL) +
+  scale_fill_viridis(discrete=T, begin=0.525, end=0.525) +
+  scale_x_continuous(name=NULL) +
+  theme(legend.position="none")
+
+ggsave("images/viz_uttInit.png", utt_init,
+       width=2000, height=2500, units="px")
+
+combined <- lang_params %>% 
+  mutate(Parameter = str_replace(Parameter, "utt-", "utterance-")) %>% 
+  ggplot(aes(x=Parameter, y=Estimate)) +
+  geom_crossbar(aes(ymin=hpdi_80_low, ymax=hpdi_80_high, fill=Parameter,
+                    alpha=ifelse(outside==TRUE, 1, 0.1)), 
+                size=0.5, width=0.7, fatten=0) + 
+  geom_errorbar(aes(ymin=hpdi_low, ymax=hpdi_high, width=0.5)) +
+  annotate("rect", ymin=rope_low, ymax=rope_high, xmin=0, xmax=Inf,
+           alpha=.8) +
+  scale_fill_viridis(discrete=T, begin=0, end=0.7) +
+  facet_wrap(~Language, ncol=6) +
+  scale_x_discrete(name=NULL, labels=NULL) +
+  scale_y_continuous(breaks = c(0.3, 0, -0.3)) +
+  scale_alpha(guide="none") +
+  theme(legend.position='bottom') + labs(fill="")
+
+ggsave("images/viz_combined.png", combined,
+       width=3000, height=4000, scale=0.8, units="px")
+
+#########################################
 ###   Sound Class analysis            ###
 #########################################
 sc_params <- para_vals %>% 
@@ -77,9 +182,10 @@ sc_params <- para_vals %>%
   separate(sep="_", col=Parameter, into=c("Language", "SoundClass", "Parameter")) %>% 
   filter(Parameter != "Intercept") %>% 
   mutate(Language=str_replace(Language, "\\.", " ")) %>% 
+  mutate(Glottocode=Language) %>% select(-Language) %>% left_join(languages) %>% 
   left_join(lang_params, by=c("Language", "Parameter")) %>%
   transmute(
-    Language=Language, Parameter=Parameter, SoundClass = SoundClass,
+    Language=Language, Parameter=Parameter, SoundClass=SoundClass,
     Estimate=Estimate.x + Estimate.y,
     hpdi_80_high=hpdi_80_high.x + hpdi_80_high.y,
     hpdi_80_low=hpdi_80_low.x + hpdi_80_low.y,
@@ -147,136 +253,34 @@ sc_per_param <- sc_params %>%
 ggsave('images/sc_per_param.png', sc_per_param, scale=1,
        width=3000, height=2000, units="px")
 
-
-#########################################
-###   Tables: Raw values              ###
-#########################################
-fixed_effects <- para_vals %>% filter(Parameter %in% pop_level) %>% 
-  mutate(Estimate=round(Estimate, 2),
-         Parameter=str_replace(Parameter, "b_Initial", ""),
-         Parameter=str_replace(Parameter, "b_z_log", ""),
-         Parameter=str_replace(Parameter, "PhonesWord", "phones per word"),
-         Parameter=str_replace(Parameter, "WordFormFreq", "word-form frequency"), 
-         "95% HPDI"=paste(format(round(hpdi_low, 2), nsmall=2), "to", 
-                              format(round(hpdi_high, 2), nsmall=2))) %>%
-  select(Parameter, Estimate, "95% HPDI") %>% 
-  xtable(caption="95% HPDI of the population-level predictors",
-         label="table: fixed_effects")
-print(xtable(fixed_effects), include.rownames=FALSE)
-
-corr <- para_vals %>% filter(str_detect(para_vals$Parameter, "cor")) %>% 
-  mutate(#Estimate=round(Estimate, 2),
-         Parameter=str_replace(Parameter, "Speaker", "Speaker"),
-         "80% HPDI"=paste(format(round(hpdi_80_low, 2), nsmall=2), "to", 
-                            format(round(hpdi_80_high, 2), nsmall=2))) %>% 
-  select(Parameter, "80% HPDI") %>% 
-  separate(sep="__", col=Parameter, into=c("Level", "Parameter", "Parameter2")) %>% 
-  mutate(Level=str_replace(Level, "cor_", ""),
-         Parameter=str_replace(Parameter, "Initial", ""),
-         Parameter2=str_replace(Parameter2, "Initial", "")) %>% 
-  pivot_wider(names_from="Parameter2", values_from="80% HPDI") 
-print(xtable(corr), include.rownames=FALSE)
-
-#########################################
-###    Overall areas                  ###
-#########################################
-np_max <- nuts_params(model)
-posterior_max <- as.array(model)
-
-overall_areas <- mcmc_areas(model, regex_pars=c("^b_(utt|word)_initial1$", "z_"),
-             prob=0.89, prob_outer=0.997, point_est="mean") +
-  geom_hline(yintercept=0, color="red", alpha=0.5, size=1)+
-  annotate("rect", xmin=rope_low, xmax=rope_high, ymin=0, ymax=Inf, alpha=.3) +
-  scale_y_discrete(labels=c('Utterance-initial','Word-initial','Speech rate', 
-                            'Phones per word', 'Word-form frequency')) +
-  scale_x_continuous(name="Effect on log-scale") + theme_bw()
-
-ggsave('images/viz_overall.png', overall_areas, scale=1,
-       width=2000, height=1000, units="px")
-
-#########################################
-###     Language plots              ###
-#########################################
-word_init <- lang_params %>% 
-  filter(Parameter == "word-initial") %>% 
-  ggplot(aes(x=Estimate, y=reorder(Language, Estimate))) +
-  geom_linerange(aes(xmin=hpdi_low, xmax=hpdi_high)) + 
-  geom_pointrange(aes(xmin=hpdi_80_low, xmax=hpdi_80_high, color=Parameter,
-                      alpha=ifelse(outside == 1, 1, 0.5)), size=1.2) +  
-  geom_vline(xintercept=0, color="red") +
-  annotate("rect", xmin=rope_low, xmax=rope_high, ymin=0, ymax=Inf, alpha=.2) +
-  scale_y_discrete(name=NULL) +
-  scale_color_viridis(discrete=T, end=0.7) +
-  scale_x_continuous(name=NULL) +
-  theme(legend.position="none")
-
-ggsave("images/viz_wordInit.png", word_init,
-       width=2000, height=2500, units="px")
-
-###################################################################
-utt_init <- lang_params %>%
-  filter(Parameter == "utt-initial") %>% 
-  ggplot(aes(x=Estimate, y=reorder(Language, Estimate))) +
-  geom_linerange(aes(xmin=hpdi_low, xmax=hpdi_high)) + 
-  geom_pointrange(aes(xmin=hpdi_80_low, xmax=hpdi_80_high, color=Parameter,
-                      alpha=ifelse(outside == 1, 1, 0.5)), size=1.2) +  
-  geom_vline(xintercept=0, color="red") +
-  annotate("rect", xmin=rope_low, xmax=rope_high, ymin=0, ymax=Inf, alpha=.2) +
-  scale_y_discrete(name=NULL) +
-  scale_color_viridis(discrete=T, end=0.7) +
-  scale_x_continuous(name=NULL) +
-  theme(legend.position="none")
-
-ggsave("images/viz_uttInit.png", utt_init,
-       width=2000, height=2500, units="px")
-
-combined <- lang_params %>% 
-  mutate(Parameter = str_replace(Parameter, "utt-", "utterance-")) %>% 
-  ggplot(aes(x=Parameter, y=Estimate)) +
-  geom_crossbar(aes(ymin=hpdi_80_low, ymax=hpdi_80_high, fill=Parameter,
-                    alpha=ifelse(outside==TRUE, 1, 0.1)), 
-                size=0.5, width=0.7, fatten=0) + 
-  geom_errorbar(aes(ymin=hpdi_low, ymax=hpdi_high, width=0.5)) +
-  # geom_hline(yintercept=0, color="red", alpha=0.5, linewidth=1)+
-  annotate("rect", ymin=rope_low, ymax=rope_high, xmin=0, xmax=Inf,
-           alpha=.8) +
-  scale_fill_viridis(discrete=T, begin=0, end=0.75) +
-  facet_wrap(~Language, ncol=6) +
-  scale_x_discrete(name=NULL, labels=NULL) +
-  scale_y_continuous(breaks = c(0.3, 0, -0.3)) +
-  scale_alpha(guide="none") +
-  theme(legend.position='bottom') + labs(fill="")
-
-ggsave("images/viz_combined.png", combined,
-       width=3000, height=4000, scale=0.8, units="px")
-
 #########################################
 ###     Speaker parameters            ###
 #########################################
-lang_estimates <- lang_params %>% select(Language, Parameter, Estimate) %>% 
-  mutate(Language=str_replace(Language, "Mojeño.Trinitario", "Mojeño Trinitario"))
-
 speaker_variation <- para_vals %>% 
   filter(grepl("^r.*Speaker", .$Parameter)) %>%
   mutate(Parameter=gsub("r_Language:Speaker\\[(.*)()(.*)]", "\\1__\\3", Parameter)) %>% 
-  separate(sep="__", col=Parameter, into=c("Speaker", "Parameter")) %>% 
+  separate(sep=",", col=Parameter, into=c("Speaker", "Parameter")) %>% 
   separate(sep="_[a-z]*[0-9]*_", col=Speaker, into=c("Language", "Speaker")) %>% 
   mutate(Language=str_replace(Language, "\\.", " ")) %>% 
+  mutate(Parameter=str_replace(Parameter, "__", ""),
+         Parameter=str_replace(Parameter, "1", ""),
+    Parameter=str_replace(Parameter, "_", "-")) %>% 
+  mutate(Glottocode=Language) %>% select(-Language) %>% left_join(languages) %>% 
+  filter(Parameter != "Intercept") %>% 
   left_join(lang_params, by=c("Language", "Parameter")) %>% 
   transmute(Language=Language, Speaker=Speaker, Parameter=Parameter,
          Estimate=Estimate.x + Estimate.y,
-         Estimate_Lang=Estimate.y,
-         hpdi_80_low=(hpdi_80_low.x + Estimate_Lang),
-         hpdi_80_high=(hpdi_80_high.x + Estimate_Lang),
-         hpdi_low=(hpdi_low.x + Estimate_Lang),
-         hpdi_high=(hpdi_high.x + Estimate_Lang)) %>% 
+         hpdi_80_low=(hpdi_80_low.x + Estimate.y),
+         hpdi_80_high=(hpdi_80_high.x + Estimate.y),
+         hpdi_low=(hpdi_low.x + Estimate.y),
+         hpdi_high=(hpdi_high.x + Estimate.y)) %>% 
   mutate(outside=ifelse(hpdi_80_high < rope_low, 1, 
                           ifelse(hpdi_80_low > rope_high, 1, 0)))
 
 #########################################
 ###     Speaker plots                 ###
 #########################################
-speaker_plot <- Speaker_variation %>% 
+speaker_plot <- speaker_variation %>% 
   ggplot(aes(x=Speaker, y=Estimate)) +
   geom_crossbar(aes(ymin=hpdi_80_low, ymax=hpdi_80_high, fill=Language,
                     alpha=ifelse(outside == 1, 1, 0.1)), 
@@ -289,91 +293,3 @@ speaker_plot <- Speaker_variation %>%
   scale_x_discrete(name=NULL, labels=NULL)  +
   scale_y_continuous(limits=c(-0.61, 0.55), name="Estimated value") +
   theme(legend.position='none')
-
-speaker_plot_sorb <- spk_sorb %>% 
-  ggplot(aes(x=Speaker, y=Estimate)) +
-  geom_crossbar(aes(ymin=hpdi_80_low, ymax=hpdi_80_high, fill=Language,
-                    alpha=ifelse(outside == 1, 1, 0.1)), 
-                size=0.5, width=0.5, fatten=0) + 
-  geom_errorbar(aes(ymin=hpdi_low, ymax=hpdi_high, width=0.3)) +
-  geom_hline(yintercept=0, color="red", alpha=0.5, size=0.5)+
-  annotate("rect", ymin=rope_low, ymax=rope_high, xmin=0, xmax=Inf, alpha=.5) +
-  scale_fill_viridis(discrete =T, begin=0.35, end=0.35) +
-  facet_grid(Parameter~Language, space="free_x", scales="free_x") +
-  scale_x_discrete(name=NULL, labels=NULL)  +
-  scale_y_continuous(limits=c(-0.61, 0.55), name="Estimated value") +
-  theme(legend.position='none')
-
-speaker_plot2 <- spk_low %>% 
-  ggplot(aes(x=Speaker, y=Estimate)) +
-  geom_crossbar(aes(ymin=hpdi_80_low, ymax=hpdi_80_high, fill=Language,
-                    alpha=ifelse(outside == 1, 1, 0.1)), 
-                size=0.5, width=0.5, fatten=0) + 
-  geom_errorbar(aes(ymin=hpdi_low, ymax=hpdi_high, width=0.3)) +
-  geom_hline(yintercept=0, color="red", alpha=0.5, size=0.5)+
-  annotate("rect", ymin=rope_low, ymax=rope_high, xmin=0, xmax=Inf, alpha=.5) +
-  scale_fill_viridis(discrete =T, begin=0.5, end=0.7) +
-  facet_grid(Parameter~Language, space="free_x", scales="free_x") +
-  scale_x_discrete(name=NULL, labels=NULL)  +
-  scale_y_continuous(limits=c(-0.61, 0.55), name="Estimated value") +
-  theme(legend.position='none')
-
-ggsave("images/viz_LowerSorbian_Speakers.png", Speaker_plot_sorb, scale=1,
-       width=2000, height=2000, units="px")
-
-speakers_combined <- Speaker_plot / Speaker_plot_urum / Speaker_plot2
-ggsave("images/viz_Speakers.png", Speakers_combined, scale=1,
-       width=2000, height=2900, units="px")
-
-short_word_spk <- Speaker_variation %>% filter(Language %in% c("Ruuli", "Vera'a"),
-                                               Parameter == "word-initial")
-long_utt_spk <-  Speaker_variation %>% filter(Language %in% c("Jejuan", "Svan", "Yali"),
-                                              Parameter == "utt-initial")
-short_utt_spk <- Speaker_variation %>% filter(Language %in% c("Fanbyak", "Mojeño Trinitario"),
-                                              Parameter == "utt-initial")
-
-short_word_plot <- short_word_spk %>% 
-  ggplot(aes(x=Speaker, y=Estimate)) +
-  geom_crossbar(aes(ymin=hpdi_80_low, ymax=hpdi_80_high, fill=Language,
-                    alpha=ifelse(outside == 1, 1, 0.1)), 
-                size=0.5, width=0.5, fatten=0) + 
-  geom_errorbar(aes(ymin=hpdi_low, ymax=hpdi_high, width=0.3)) +
-  geom_hline(yintercept=0, color="red", alpha=0.5, size=0.5)+
-  annotate("rect", ymin=rope_low, ymax=rope_high, xmin=0, xmax=Inf, alpha=.5) +
-  scale_fill_viridis(discrete =T, begin=0, end=0.1) +
-  facet_grid(Parameter~Language, space="free_x", scales="free_x") +
-  scale_x_discrete(name=NULL, labels=NULL)  +
-  scale_y_continuous(limits=c(-0.61, 0.55), name="Estimated value") +
-  theme(legend.position='none')
-
-long_utt_plot <- long_utt_spk %>% 
-  ggplot(aes(x=Speaker, y=Estimate)) +
-  geom_crossbar(aes(ymin=hpdi_80_low, ymax=hpdi_80_high, fill=Language,
-                    alpha=ifelse(outside == 1, 1, 0.1)), 
-                size=0.5, width=0.5, fatten=0) + 
-  geom_errorbar(aes(ymin=hpdi_low, ymax=hpdi_high, width=0.3)) +
-  geom_hline(yintercept=0, color="red", alpha=0.5, size=0.5)+
-  annotate("rect", ymin=rope_low, ymax=rope_high, xmin=0, xmax=Inf, alpha=.5) +
-  scale_fill_viridis(discrete =T, begin=0.2, end=0.5) +
-  facet_grid(Parameter~Language, space="free_x", scales="free_x") +
-  scale_x_discrete(name=NULL, labels=NULL)  +
-  scale_y_continuous(limits=c(-0.61, 0.55), name="Estimated value") +
-  theme(legend.position='none')
-
-short_utt_plot <- short_utt_spk %>% 
-  ggplot(aes(x=Speaker, y=Estimate)) +
-  geom_crossbar(aes(ymin=hpdi_80_low, ymax=hpdi_80_high, fill=Language,
-                    alpha=ifelse(outside == 1, 1, 0.1)), 
-                size=0.5, width=0.5, fatten=0) + 
-  geom_errorbar(aes(ymin=hpdi_low, ymax=hpdi_high, width=0.3)) +
-  geom_hline(yintercept=0, color="red", alpha=0.5, size=0.5)+
-  annotate("rect", ymin=rope_low, ymax=rope_high, xmin=0, xmax=Inf, alpha=.5) +
-  scale_fill_viridis(discrete =T, begin=0.6, end=0.7) +
-  facet_grid(Parameter~Language, space="free_x", scales="free_x") +
-  scale_x_discrete(name=NULL, labels=NULL)  +
-  scale_y_continuous(limits=c(-0.61, 0.55), name="Estimated value") +
-  theme(legend.position='none')
-
-Speakers_single <- short_word_plot / long_utt_plot / short_utt_plot
-ggsave("./images/viz_singleEffect.png", Speakers_single, scale=1,
-       width=2000, height=1450, units="px")
