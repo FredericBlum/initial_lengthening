@@ -1,4 +1,4 @@
-Language,Name,Glottocode,Family,Area,Latitude,Longitude
+Name,Language,Glottocode,Family,Area,Latitude,Longitude
 Anal,Anal,anal1239,Sino-Tibetan,Eurasia,24.05,94.28
 Arapaho,Arapaho,arap1274,Algic,North America,43.39,-108.81
 Datooga,Asimjeeg Datooga,tsim1256,Nilotic,Africa,-3.42,35.43
@@ -10,10 +10,10 @@ Cashinahua,Cashinahua,cash1254,Pano-Tacanan,South America,-9.72,-71.17
 Daakie,Daakie,port1286,Austronesian,Papunesia,-16.31,168.05
 Dalabon,Dalabon,ngal1292,Gunwinyguan,Australia,-13.98,133.94
 Dolgan,Dolgan,dolg1241,Turkic,Eurasia,71.11,94.29
-English,English,sout3282,Indo-European,Eurasia,53,-1
+English,English (Southern England),sout3282,Indo-European,Eurasia,53,-1
 Evenki,Evenki,even1259,Tungusic,Eurasia,61.97,94.69
 Fanbyak,Fanbyak,orko1234,Austronesian,Papunesia,-16.21,168.21
-French,French,stan1290,Indo-European,Eurasia,48,2
+French,French (Switzerland),stan1290,Indo-European,Eurasia,48,2
 Goemai,Goemai,goem1240,Afro-Asiatic,Africa,8.74,9.72
 Gorwaa,Gorwaa,goro1270,Afro-Asiatic,Africa,-4.24,35.8
 Jahai,Jahai,jeha1242,Austroasiatic,Eurasia,5.64,101.54

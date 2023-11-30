@@ -8,7 +8,7 @@ library(xtable)
 
 
 ###################################################################
-model <- readRDS(file="models/cl_max.rds")
+model <- readRDS(file="models/cl_max_final.rds")
 
 rope_high=0.01
 rope_low=-0.01

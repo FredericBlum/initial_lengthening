@@ -1,12 +1,9 @@
 library(readr)
-library(ggplot2)
 library(dplyr)
+library(ggplot2)
 library(ggrepel)
 library(rnaturalearth)
 library(rnaturalearthdata)
-library(viridis)
-library(knitr)
-library(xtable)
 
 ###################################
 data <- read_tsv('data/res.tsv') %>% 
@@ -38,7 +35,7 @@ map_doreco <- ggplot()  +
              aes(Longitude, Latitude),
              size=3, shape=21, fill="black", alpha=0.8) +
   geom_label_repel(box.padding=0.5, point.padding=0.5,
-                   data=languages, aes(Longitude, Latitude, label=Name), 
+                   data=languages, aes(Longitude, Latitude, label=Language), 
                    min.segment.length=unit(0, 'lines'),
                    size=3.5, max.overlaps=99) +
   scale_x_continuous(name="") + scale_y_continuous(name="") 
