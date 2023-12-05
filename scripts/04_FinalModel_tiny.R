@@ -18,8 +18,9 @@ cl_max <-
                 prior(normal(0, 0.3), class=b),
                 prior(exponential(12), class=sd),
                 prior(lkj(5), class=cor)),    
-      iter=1000, warmup=500, chains=4, cores=4,
+      iter=2000, warmup=1000, chains=4, cores=4,
       threads=threading(2),
+      adapt_delta=0.85,
       seed=42,
       file="models/cl_tiny",
       backend="cmdstanr"
