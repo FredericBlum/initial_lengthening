@@ -16,12 +16,12 @@ data <- read_tsv('data/res.tsv') %>%
       		word_initial==1, "word", "other"
   )))
 
-cl_max <- readRDS(file="models/cl_final.rds")
+cl_max <- readRDS(file="models/cl_max_final.rds")
 
 duration_vals <- data %>% pull(Duration)
 group_init <- data %>% pull(initial)
 
-if (file.exists("../models/post_pred.rds")) {
+if (file.exists("models/post_pred.rds")) {
   sim_data <- readRDS(file="models/post_pred.rds")
 } else{
   print("Sorry, the file does not yet exist. This may take some time.")
@@ -35,6 +35,16 @@ if (file.exists("../models/post_pred.rds")) {
 lp_max <- log_posterior(cl_max)
 np_max <- nuts_params(cl_max)
 posterior_max <- as.array(cl_max)
+
+mcmc_parcoord(posterior_max, regex_pars=c("^b_"))
+scatter_max <- mcmc_scatter(
+  posterior_max, 
+  pars = c("b_Intercept", "sigma"), 
+  np = np_max,
+  size = 1
+)
+
+compare_cp_ncp(scatter_theta_cp, scatter_theta_ncp, ylim = c(-8, 4))
 
 # mcmc_pairs: up to 8 parameters, divergent transitions and collinearity between parameters
 pred_pairs <- mcmc_pairs(posterior_max, np=np_max, regex_pars=c("^b_"), 

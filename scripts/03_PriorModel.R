@@ -13,7 +13,7 @@ data <- read_tsv('data/res.tsv') %>%
          word_initial = as.factor(word_initial),
          utt_initial = as.factor(utt_initial))
 
-cl_max <- 
+cl_priors <- 
   brm(data=data,
       family=lognormal(),
       formula=Duration ~ 1 + utt_initial + word_initial + 
@@ -67,12 +67,12 @@ ggsave("images/prior_langAll.png", prior_lang_all, scale=0.95,
 
 raw_durations <- data %>% .$Duration
 
-if (file.exists("../models/prior_pred.rds")) {
-  priorsim_durations <- readRDS(file="../models/prior_pred.rds")
+if (file.exists("models/prior_pred.rds")) {
+  priorsim_durations <- readRDS(file="models/prior_pred.rds")
 } else{
   priorsim_durations <- posterior_predict(cl_priors, ndraws=8, 
                                           cores=getOption("mc.cores", 4))
-  saveRDS(priorsim_durations, file="../models/prior_pred.rds")
+  saveRDS(priorsim_durations, file="models/prior_pred.rds")
 } 
 
 prior_box <- ppc_boxplot(raw_durations, priorsim_durations[4:8, ])  + 
@@ -84,9 +84,9 @@ prior_box <- ppc_boxplot(raw_durations, priorsim_durations[4:8, ])  +
 
 prior_overlay <- ppc_dens_overlay(raw_durations, priorsim_durations[1:8, ], 
                                   alpha=0.5, size=0.7, adjust=1) +
-  scale_x_log10(breaks=c(5, 10, 30, 80, 200, 500),
-                limit=c(5, 1000),
-                name="Overall data on log-axis")
+  scale_x_log10(breaks=c(2, 5, 10, 30, 80, 200, 500, 1000, 2000),
+                limit=c(2, 2000),
+                name="")
 
 prior_overlay$scales$scales[[1]]$labels <- c("data", "prior")
 
