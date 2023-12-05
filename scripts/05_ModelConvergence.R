@@ -7,7 +7,7 @@ library(brms)
 
 color_scheme_set("pink")
 
-data <- read_tsv('data/res.tsv') %>% 
+data <- read_tsv('data.tsv') %>% 
   mutate(sound_class = paste(voicing, sound_class),
          word_initial = as.factor(word_initial),
          utt_initial = as.factor(utt_initial),

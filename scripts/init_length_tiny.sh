@@ -5,4 +5,4 @@
 #SBATCH --output=%x.%j.out
 #SBATCH --error=%x.%j.err
 
-Rscript --verbose 04_FinalModel.R
+Rscript --verbose 04_FinalModel_tiny.R
