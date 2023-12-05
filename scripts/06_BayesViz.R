@@ -1,6 +1,8 @@
 library(bayesplot)
 library(brms)
-library(tidyverse)
+library(readr)
+library(dplyr)
+library(ggplot2)
 library(tidybayes)
 library(patchwork)
 library(viridis)
@@ -9,6 +11,9 @@ library(xtable)
 
 ###################################################################
 model <- readRDS(file="models/cl_tiny.rds")
+
+languages <- read_csv('../../datasets/doreco/cldf/languages.csv') %>% 
+  mutate(Language=Name, Glottocide=ID) %>% select(Glottocode, Language) 
 
 rope_high=0.01
 rope_low=-0.01
@@ -52,14 +57,12 @@ lang_params <- para_vals %>%
          outside_99=ifelse(hpdi_high < rope_low, "yes", 
                              ifelse(hpdi_low > rope_high, "yes", "no")),
          Language=str_replace(Language, "\\.", " ")) %>% 
-  mutate(Glottocode=Language) %>% 
-  select(-Language) %>% 
+  mutate(Glottocode=Language) %>% select(-Language) %>% 
   left_join(languages)
 
 langWord <- lang_params %>% filter(Parameter == "word-initial")
 langUtt <- lang_params %>% filter(Parameter == "utt-initial")
 
-languages <- read_csv('languages.csv')
 
 pop_level <- c("utt-initial", "word-initial", 
                 "b_z_logSpeechRate" , "b_z_logPhonWord",

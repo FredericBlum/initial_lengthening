@@ -1,6 +1,8 @@
 library(ggdist)
 library(gghalves)
-library(tidyverse)
+library(readr)
+library(dplyr)
+library(ggplot2)
 library(patchwork)
 library(viridis)
 
@@ -16,9 +18,6 @@ data <- read_tsv('data.tsv') %>%
              word_initial==1, "word-initial", "other"
            )))
 
-# check exclusion of long consonants; exclude both final positions
-# check exclusion of final consonants
-# create non-initial column for viz
 langs <- data %>% group_by(Language) %>% count() %>% arrange(Language)
 phons <- data %>% group_by(Language, Value) %>% count() %>% arrange(n)
 cons <- data %>% group_by(sound_class, utt_initial) %>% count() %>% arrange(n)
