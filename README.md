@@ -6,7 +6,7 @@ This workflow leads you through the process of reproducing our analysis. We reco
 
 ```CLI
 git clone https://github.com/Tarotis/initial_lengthening
-cd consonant_lengthening
+cd initial_lengthening
 ```
 
 The first step consists in cloning the repositories of the DoReCo data, as well as CLTS. You can clone them with the following commands:
