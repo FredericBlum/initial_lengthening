@@ -2,7 +2,14 @@
 
 ## Preparing DoReCo for the analysis
 
-We recommend to run this in a fresh virtual environment. The first step consists in cloning the repositories of the DoReCo data, as well as CLTS. You can clone them with the following commands:
+This workflow leads you through the process of reproducing our analysis. We recommend to run this in a fresh virtual environment. To initialize this, please first clone this repository to your workspace and `cd` into the directory.
+
+```CLI
+git clone https://github.com/Tarotis/initial_lengthening
+cd consonant_lengthening
+```
+
+The first step consists in cloning the repositories of the DoReCo data, as well as CLTS. You can clone them with the following commands:
 
 ```CLI
 git clone https://github.com/cldf-datasets/doreco
