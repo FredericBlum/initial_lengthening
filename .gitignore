@@ -3,6 +3,7 @@
 .Rproj.user
 scripts/models/
 scripts/data.tsv
+scripts/R_groundhog/
 scripts/groundhog_libraries_2023-07-17/
 doreco/
 clts/
