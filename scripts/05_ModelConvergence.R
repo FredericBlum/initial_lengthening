@@ -36,13 +36,13 @@ lp_max <- log_posterior(cl_max)
 np_max <- nuts_params(cl_max)
 posterior_max <- as.array(cl_max)
 
-mcmc_parcoord(posterior_max, regex_pars=c("^b_"))
-scatter_max <- mcmc_scatter(
-  posterior_max, 
-  pars = c("b_Intercept", "sigma"), 
-  np = np_max,
-  size = 1
-)
+# mcmc_parcoord(posterior_max, regex_pars=c("^b_"))
+# scatter_max <- mcmc_scatter(
+#   posterior_max, 
+#   pars = c("b_Intercept", "sigma"), 
+#   np = np_max,
+#   size = 1
+# )
 
 # mcmc_pairs: up to 8 parameters, divergent transitions and collinearity between parameters
 pred_pairs <- mcmc_pairs(posterior_max, np=np_max, regex_pars=c("^b_"), 
@@ -112,26 +112,26 @@ ggsave('images/eval_rhat_neff.png', rhat_neff_plot, scale=1)
 #########################################
 ###     posterior predictive checks   ###
 #########################################
-box_comp <- ppc_boxplot(duration_vals, sim_data[1:5, ])  + 
-  coord_cartesian(ylim=c(5, 800), expand=F) +
-  scale_y_log10(breaks=c(10, 30, 100, 300, 750)) +
-  coord_cartesian(xlim=c(0.99, 6)) +
-  #theme(legend.position='bottom') +
-  ylab("Duration on log-axis") + 
-  ggtitle("A: Overall comparison with different simulation runs")
+# box_comp <- ppc_boxplot(duration_vals, sim_data[1:5, ])  + 
+#   coord_cartesian(ylim=c(5, 800), expand=F) +
+#   scale_y_log10(breaks=c(10, 30, 100, 300, 750)) +
+#   coord_cartesian(xlim=c(0.99, 6)) +
+#   #theme(legend.position='bottom') +
+#   ylab("Duration on log-axis") + 
+#   ggtitle("A: Overall comparison with different simulation runs")
 
-violin_comp <- ppc_violin_grouped(duration_vals, sim_data[1:4,], group_init, 
-                                  alpha=1, y_draw="violin") + 
-  coord_cartesian(ylim=c(5, 800), expand=F) +
-  scale_y_log10(breaks=c(10, 30, 100, 300, 750)) +
-  scale_x_discrete(labels=c("non-initial", "utterance-initial", "word-initial")) +
-  coord_cartesian(xlim=c(0.99, 3)) +
-  legend_none() + 
-  ylab("Duration on log-axis") +
-  ggtitle("B: Grouped comparison with all simulated data") 
+# violin_comp <- ppc_violin_grouped(duration_vals, sim_data[1:4,], group_init, 
+#                                   alpha=1, y_draw="violin") + 
+#   coord_cartesian(ylim=c(5, 800), expand=F) +
+#   scale_y_log10(breaks=c(10, 30, 100, 300, 750)) +
+#   scale_x_discrete(labels=c("non-initial", "utterance-initial", "word-initial")) +
+#   coord_cartesian(xlim=c(0.99, 3)) +
+#   legend_none() + 
+#   ylab("Duration on log-axis") +
+#   ggtitle("B: Grouped comparison with all simulated data") 
 
-box_comp$scales$scales[[1]]$labels <- c("data", "simulated")
-box_comp$scales$scales[[2]]$labels <- c("data", "simulated")
+# box_comp$scales$scales[[1]]$labels <- c("data", "simulated")
+# box_comp$scales$scales[[2]]$labels <- c("data", "simulated")
 
-ppc_sum <- (box_comp) / (violin_comp) + plot_layout(guides="collect")
-ggsave('images/eval_ppcsum.png', ppc_sum, width=2000, height=1300, units="px")
+# ppc_sum <- (box_comp) / (violin_comp) + plot_layout(guides="collect")
+# ggsave('images/eval_ppcsum.png', ppc_sum, width=2000, height=1300, units="px")
