@@ -44,8 +44,6 @@ scatter_max <- mcmc_scatter(
   size = 1
 )
 
-compare_cp_ncp(scatter_theta_cp, scatter_theta_ncp, ylim = c(-8, 4))
-
 # mcmc_pairs: up to 8 parameters, divergent transitions and collinearity between parameters
 pred_pairs <- mcmc_pairs(posterior_max, np=np_max, regex_pars=c("^b_"), 
                          off_diag_args=list(size=0.75))
