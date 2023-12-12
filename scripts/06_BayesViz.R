@@ -12,9 +12,9 @@ library(xtable)
 
 
 ###################################################################
-model <- readRDS(file="models/cl_tiny.rds")
-
-languages <- read_csv('../../datasets/doreco/cldf/languages.csv') %>% 
+model <- readRDS(file="models/cl_max_final.rds")
+model <- cl_max
+languages <- read_csv('../doreco/cldf/languages.csv') %>% 
   mutate(Language=Name, Glottocide=ID) %>% select(Glottocode, Language) 
 
 rope_high=0.01

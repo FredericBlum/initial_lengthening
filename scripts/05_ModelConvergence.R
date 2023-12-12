@@ -16,7 +16,7 @@ data <- read_tsv('data.tsv') %>%
       		word_initial==1, "word", "other"
   )))
 
-cl_max <- readRDS(file="models/cl_max_final.rds")
+cl_max <- readRDS(file="models/cl_final_tiny_3.rds")
 
 duration_vals <- data %>% pull(Duration)
 group_init <- data %>% pull(initial)
