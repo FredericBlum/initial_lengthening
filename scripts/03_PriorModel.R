@@ -47,6 +47,8 @@ hpdi_vals <- posterior_interval(cl_priors, prob=0.89) %>%
   rename(hpdi_low=X5.5., hpdi_high=X94.5.)
 
 para_vals <- para_vals %>% left_join(hpdi_vals)
+
+# TODO: I'd appreciate an explanation of the warning messages for this particular step:
 lang_params <- para_vals %>% filter(grepl("^r_Language.*", para_vals$parameter)) %>% 
   mutate(parameter=gsub("r_Language\\[(.*)(,Initial|,)(.*)]", "\\1__\\3", parameter)) %>% 
   separate(sep="__", col=parameter, into=c("Language", "parameter")) %>% 
