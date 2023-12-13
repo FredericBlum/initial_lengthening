@@ -51,6 +51,7 @@ non_tens <- data %>%
   labs(title="Non-Multiples", col="") +
   ylab("Occurrences") + xlab("duration on log-axis")
 
+# TODO: Add explanation for legend, i.e. 0 is ..., 1 is ...? (It's clear from the script, but not in the plot as far as I can tell)
 distr <- (tens / non_tens) + plot_layout(guides="collect") & theme(legend.position="bottom")
 ggsave("images/dataExpl_distr.png", distr, scale=1,
        width=2000, height=2000, units="px")
@@ -79,6 +80,7 @@ violin_init <- data %>%
   geom_violin(aes(fill=word_initial)) +
   geom_boxplot(width=0.5, 
                outlier.size=1, outlier.color="black", outlier.alpha=0.3) +
+  # TODO: I'd personally remove these commented out 'optionals', or explain why they're still in here.
   # facet_wrap(~Language, ncol=3) +
   scale_fill_viridis(discrete=TRUE, end=0.7) +
   scale_y_log10(limits=c(30, 500), breaks=c(30, 70, 150, 300, 500), 
@@ -87,5 +89,6 @@ violin_init <- data %>%
   theme_grey(base_size=11) +
   theme(legend.position='bottom', legend.title=element_blank())
 
+# TODO: Likewise, explanation of legend.
 ggsave("images/dataExpl_violinInit.png", violin_init, scale=1.3,
        width=1600, height=2300, units="px")
