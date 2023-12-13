@@ -106,8 +106,8 @@ WHERE
     sound.cldf_cltsReference NOT LIKE '%ejective%' AND
     sound.cldf_cltsReference NOT LIKE '%long%' AND
     -- ... and exclude utterance-initial stops.
-    NOT (phone.cldf_id in (select cldf_id from utterance_initials) AND sound.cldf_cltsReference LIKE '%stop%'
-	) AND
+    NOT (phone.cldf_id in (select cldf_id from utterance_initials) AND sound.cldf_cltsReference LIKE '%stop%') AND
+    NOT (phone.cldf_id in (select cldf_id from utterance_initials) AND sound.cldf_cltsReference LIKE '%affricate%') AND
     -- We also exclude phonemes with unusually long durations, which hint at annotation errors.
     phone.duration < t.threshold AND
 	phone.duration > 0.03
