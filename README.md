@@ -66,6 +66,8 @@ cd scripts/
 
 Now you are in a folder full of R-Scripts. The first script `00_setup.R` includes a `groundhog`-call, which installs packages with the correct versions. Running this script will create a folder `R_groundhog` in the current working directory which includes those packages. It also includes calls to the other scripts. You can run all of them via the following command:
 
+TODO: Use bash or nothing as syntax highlighting for this block, but not R.
+
 ```R
 Rscript 00_setup.R
 ```
