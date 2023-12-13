@@ -90,10 +90,5 @@ lkjcorr <- rlkjcorr_marginal(n, K = 2, eta = 5) %>% tibble(x = .) %>%
   ylab("Density of values") +
   labs(title = "R ~ LKJcorr(5)")
 
-# ggsave("images/prior_predictors.png", predictors)
-# ggsave("images/prior_sampleInts.png", sample_ints)
-# ggsave("images/prior_sigma2.png", sigma2)
-# ggsave("images/prior_lkjcorr.png", lkjcorr)
-
 all_priors <- (sample_ints + predictors) / (sigma2 + lkjcorr)
 ggsave("images/prior_all.png", all_priors, scale = 1)

@@ -13,7 +13,6 @@ library(xtable)
 
 ###################################################################
 model <- readRDS(file="models/cl_max_final.rds")
-model <- cl_max
 languages <- read_csv('../doreco/cldf/languages.csv') %>% 
   mutate(Language=Name, Glottocide=ID) %>% select(Glottocode, Language) 
 
@@ -64,7 +63,6 @@ lang_params <- para_vals %>%
 
 langWord <- lang_params %>% filter(Parameter == "word-initial")
 langUtt <- lang_params %>% filter(Parameter == "utt-initial")
-
 
 pop_level <- c("utt-initial", "word-initial", 
                 "b_z_logSpeechRate" , "b_z_logPhonWord",
@@ -210,14 +208,14 @@ sc_per_lang_word <- sc_params %>%
   geom_hline(yintercept=0, color="red", alpha=0.7, linewidth=1)+
   annotate("rect", ymin=rope_low, ymax=rope_high, xmin=0, xmax=Inf, alpha=.5) +
   scale_fill_viridis(discrete=T, begin=0, end=0.75) +
-  facet_wrap(~Language, ncol=8) +
+  facet_wrap(~Language, ncol=4) +
   scale_x_discrete(name=NULL, labels=NULL) +
   scale_y_continuous(breaks = c(0.3, 0, -0.3)) +
   scale_alpha(guide="none") +
   theme(legend.position='bottom') + labs(fill="")
 
 ggsave('images/sc_per_lang_word.png', sc_per_lang_word, scale=1,
-       width=3000, height=2000, units="px")
+       width=2000, height=3000, units="px")
 
 sc_per_lang_utt <- sc_params %>% 
   filter(Parameter=="utt-initial") %>% 

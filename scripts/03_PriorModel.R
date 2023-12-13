@@ -35,28 +35,33 @@ cl_priors <-
   )
 
 para_vals <- posterior_summary(cl_priors) %>% 
-  data.frame() %>% as_tibble(rownames="parameter")
+  data.frame() %>% as_tibble(rownames="Parameter")
 
 hpdi_vals <- posterior_interval(cl_priors, prob=0.89) %>% 
-  data.frame() %>% as_tibble(rownames="parameter") %>% 
+  data.frame() %>% as_tibble(rownames="Parameter") %>% 
   rename(hpdi_low=X5.5., hpdi_high=X94.5.)
 
 para_vals <- para_vals %>% left_join(hpdi_vals)
-lang_params <- para_vals %>% filter(grepl("^r_Language.*", para_vals$parameter)) %>% 
-  mutate(parameter=gsub("r_Language\\[(.*)(,Initial|,)(.*)]", "\\1__\\3", parameter)) %>% 
-  separate(sep="__", col=parameter, into=c("Language", "parameter")) %>% 
+lang_params <- para_vals %>% filter(grepl("^r_Language.*", para_vals$Parameter)) %>% 
+  filter(grepl("^r_Language:sound_class\\[.*", Parameter)) %>% 
+  mutate(
+    Parameter=gsub("^r_Language:sound_class\\[(.*)(,-initial|,)(.*)]","\\1__\\3",Parameter),
+    Parameter=str_replace(Parameter, "_initial1", "-initial"),
+    Parameter=str_replace(Parameter, "__", "_")) %>% 
+  separate(sep="_", col=Parameter, into=c("Language", "SoundClass", "Parameter")) %>% 
+  filter(Parameter != "Intercept") %>% 
   mutate(sd_min=Estimate - 3*Est.Error, 
          sd_max=Estimate + 3*Est.Error,
-         parameter=str_replace(parameter, "UttInitial", "utterance-initial"),
-         parameter=str_replace(parameter, "WordInitial", "word-initial"))
+         Parameter=str_replace(Parameter, "UttInitial", "utterance-initial"),
+         Parameter=str_replace(Parameter, "WordInitial", "word-initial"))
 
-prior_lang_all <- lang_params %>% filter(parameter != "Intercept") %>% 
-  mutate(parameter=str_replace(parameter, "_initial", "")) %>% 
-  ggplot(aes(x=parameter, y=Estimate)) +
-  geom_crossbar(aes(ymin=hpdi_low, ymax=hpdi_high, fill=parameter), 
+prior_lang_all <- lang_params %>% filter(Parameter != "Intercept") %>% 
+  mutate(Parameter=str_replace(Parameter, "_initial", "")) %>% 
+  ggplot(aes(x=Parameter, y=Estimate)) +
+  geom_crossbar(aes(ymin=hpdi_low, ymax=hpdi_high, fill=Parameter), 
                 linewidth=0.5, width=0.5, fatten=0) + 
   geom_errorbar(aes(ymin=sd_min, ymax=sd_max, width=0.3)) +
-  geom_hline(yintercept=0, color="red", alpha=0.5, size=0.5)+
+  geom_hline(yintercept=0, color="red", alpha=0.5, linewidth=0.5)+
   scale_fill_viridis(discrete =T, end=0.7) +
   scale_y_continuous(breaks=seq(from=-0.5, to=0.5, by=0.5)) +
   facet_wrap(~Language, ncol=5) +
@@ -78,16 +83,16 @@ if (file.exists("models/prior_pred.rds")) {
 } 
 
 prior_box <- ppc_boxplot(raw_durations, priorsim_durations[4:8, ])  + 
-  scale_y_log10(breaks=c(5, 10, 30, 80, 200, 500, 1000),
-                limit=c(2, 1300),
+  scale_y_log10(breaks=c(1, 5, 10, 30, 80, 200, 500, 2000),
+                limit=c(1, 2000),
                 name="Duration on log-axis") +
   theme(legend.position="none") +
   labs(title="Real and simulated data")
 
 prior_overlay <- ppc_dens_overlay(raw_durations, priorsim_durations[1:8, ], 
                                   alpha=0.5, size=0.7, adjust=1) +
-  scale_x_log10(breaks=c(2, 5, 10, 30, 80, 200, 500, 1000, 2000),
-                limit=c(2, 2000),
+  scale_x_log10(breaks=c(1, 5, 10, 30, 80, 200, 500, 1000, 2000),
+                limit=c(1, 2000),
                 name="")
 
 prior_overlay$scales$scales[[1]]$labels <- c("data", "prior")

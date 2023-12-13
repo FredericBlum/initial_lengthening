@@ -11,7 +11,7 @@ data <- read_tsv('data.tsv') %>%
   mutate(Glottocode=Language)
 
 lang_vec <- unique(data$Language)
-languages <- read_csv('../../datasets/doreco/cldf/languages.csv')
+languages <- read_csv('../doreco/cldf/languages.csv')
 
 ###################################
 ###     Preprocessing numbers   ###

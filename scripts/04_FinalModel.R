@@ -18,10 +18,9 @@ cl_max <-
               prior(normal(0, 0.3), class=b),
               prior(exponential(12), class=sd),
               prior(lkj(5), class=cor)),    
-      iter=5000, warmup=2500, chains=4, cores=4,
-      threads=threading(2),
+      iter=4000, warmup=2000, chains=4, cores=4,
       adapt_delta=0.85,
       seed=42,
-      file="models/cl_final",
+      file="models/cl_final_2",
       backend="cmdstanr"
   )

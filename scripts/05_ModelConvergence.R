@@ -87,11 +87,11 @@ rhat_all <- mcmc_rhat(rhats_max) + xlab("R-hat value") +
   scale_x_continuous(breaks=seq(from=1, to=1.001, by=0.0002)) +
   theme(legend.position="none")
 
-rhat_val <- rhats_max[lapply(rhats_max, num) > 1.0035]
+rhat_val <- rhats_max[lapply(rhats_max, as.numeric) > 1.01]
 rhat_filter <- mcmc_rhat(rhat_val) + yaxis_text(hjust=1) +
   # coord_cartesian(xlim=c(1.00, 1.01)) +
   scale_x_continuous(breaks=seq(from=1.0, to=1.01, by=0.005),
-                     limits=c(1, 1.01)) +
+                     limits=c(1, 1.03)) +
   theme(legend.position="none")
 
 ###########################################
@@ -101,7 +101,7 @@ neff_all_plot <- mcmc_neff(neff_max, size=2) +
   xlab("Effective sample size")  +
   theme(legend.position="none")
 
-neff_filter <- neff_max[lapply(neff_max, num) < 0.20]
+neff_filter <- neff_max[lapply(neff_max, as.numeric) < 0.15]
 neff_fil_plot <- mcmc_neff(neff_filter, size=2) + yaxis_text(hjust=1) + 
   scale_x_continuous(breaks=c(0.1, 0.2), limits=c(0, 0.5))  +
   theme(legend.position="none")
@@ -112,26 +112,26 @@ ggsave('images/eval_rhat_neff.png', rhat_neff_plot, scale=1)
 #########################################
 ###     posterior predictive checks   ###
 #########################################
-# box_comp <- ppc_boxplot(duration_vals, sim_data[1:5, ])  + 
-#   coord_cartesian(ylim=c(5, 800), expand=F) +
-#   scale_y_log10(breaks=c(10, 30, 100, 300, 750)) +
-#   coord_cartesian(xlim=c(0.99, 6)) +
-#   #theme(legend.position='bottom') +
-#   ylab("Duration on log-axis") + 
-#   ggtitle("A: Overall comparison with different simulation runs")
+box_comp <- ppc_boxplot(duration_vals, sim_data[1:5, ])  +
+  coord_cartesian(ylim=c(5, 800), expand=F) +
+  scale_y_log10(breaks=c(10, 30, 100, 300, 750)) +
+  coord_cartesian(xlim=c(0.99, 6)) +
+  #theme(legend.position='bottom') +
+  ylab("Duration on log-axis") +
+  ggtitle("A: Overall comparison with different simulation runs")
 
-# violin_comp <- ppc_violin_grouped(duration_vals, sim_data[1:4,], group_init, 
-#                                   alpha=1, y_draw="violin") + 
-#   coord_cartesian(ylim=c(5, 800), expand=F) +
-#   scale_y_log10(breaks=c(10, 30, 100, 300, 750)) +
-#   scale_x_discrete(labels=c("non-initial", "utterance-initial", "word-initial")) +
-#   coord_cartesian(xlim=c(0.99, 3)) +
-#   legend_none() + 
-#   ylab("Duration on log-axis") +
-#   ggtitle("B: Grouped comparison with all simulated data") 
+violin_comp <- ppc_violin_grouped(duration_vals, sim_data[1:4,], group_init,
+                                  alpha=1, y_draw="violin") +
+  coord_cartesian(ylim=c(5, 800), expand=F) +
+  scale_y_log10(breaks=c(10, 30, 100, 300, 750)) +
+  scale_x_discrete(labels=c("non-initial", "utterance-initial", "word-initial")) +
+  coord_cartesian(xlim=c(0.99, 3)) +
+  theme(legend.position = "none") +
+  ylab("Duration on log-axis") +
+  ggtitle("B: Grouped comparison with all simulated data")
 
 # box_comp$scales$scales[[1]]$labels <- c("data", "simulated")
 # box_comp$scales$scales[[2]]$labels <- c("data", "simulated")
 
-# ppc_sum <- (box_comp) / (violin_comp) + plot_layout(guides="collect")
-# ggsave('images/eval_ppcsum.png', ppc_sum, width=2000, height=1300, units="px")
+ppc_sum <- (box_comp) / (violin_comp) + plot_layout(guides="collect")
+ggsave('images/eval_ppcsum.png', ppc_sum, width=2000, height=1300, units="px")
