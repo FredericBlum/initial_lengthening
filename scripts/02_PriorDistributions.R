@@ -90,6 +90,7 @@ lkjcorr <- rlkjcorr_marginal(n, K = 2, eta = 5) %>% tibble(x = .) %>%
   ylab("Density of values") +
   labs(title = "R ~ LKJcorr(5)")
 
+# TODO: I'd remove or explain.
 # ggsave("images/prior_predictors.png", predictors)
 # ggsave("images/prior_sampleInts.png", sample_ints)
 # ggsave("images/prior_sigma2.png", sigma2)
