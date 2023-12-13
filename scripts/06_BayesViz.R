@@ -2,6 +2,8 @@ library(bayesplot)
 library(brms)
 library(readr)
 library(dplyr)
+library(tidyr)
+library(stringr)
 library(ggplot2)
 library(tidybayes)
 library(patchwork)
@@ -10,9 +12,9 @@ library(xtable)
 
 
 ###################################################################
-model <- readRDS(file="models/cl_tiny.rds")
-
-languages <- read_csv('../../datasets/doreco/cldf/languages.csv') %>% 
+model <- readRDS(file="models/cl_max_final.rds")
+model <- cl_max
+languages <- read_csv('../doreco/cldf/languages.csv') %>% 
   mutate(Language=Name, Glottocide=ID) %>% select(Glottocode, Language) 
 
 rope_high=0.01
@@ -105,7 +107,7 @@ posterior_max <- as.array(model)
 
 overall_areas <- mcmc_areas(model, regex_pars=c("^b_(utt|word)_initial1$", "z_"),
              prob=0.89, prob_outer=0.997, point_est="mean") +
-  geom_hline(yintercept=0, color="red", alpha=0.5, size=1)+
+  geom_hline(yintercept=0, color="red", alpha=0.5, linewidth=1)+
   annotate("rect", xmin=rope_low, xmax=rope_high, ymin=0, ymax=Inf, alpha=.3) +
   scale_y_discrete(labels=c('Utterance-initial','Word-initial','Speech rate', 
                             'Phones per word', 'Word-form frequency')) +
@@ -123,8 +125,7 @@ word_init <- lang_params %>%
   geom_errorbar(aes(xmin=hpdi_low, xmax=hpdi_high)) + 
   geom_crossbar(aes(
     xmin=hpdi_80_low, xmax=hpdi_80_high, fill=Parameter,
-    alpha=ifelse(outside == 1, 0.8, 0.5)),
-    size=1, fatten=2, linewidth=0.7) +  
+    alpha=ifelse(outside == 1, 0.8, 0.5)), fatten=2, linewidth=0.5, width=0.8) +  
   geom_vline(xintercept=0, color="red") +
   annotate("rect", xmin=rope_low, xmax=rope_high, ymin=0, ymax=Inf, alpha=.2) +
   scale_y_discrete(name=NULL) +
@@ -142,8 +143,7 @@ utt_init <- lang_params %>%
   geom_errorbar(aes(xmin=hpdi_low, xmax=hpdi_high)) + 
   geom_crossbar(aes(
     xmin=hpdi_80_low, xmax=hpdi_80_high, fill=Parameter,
-    alpha=ifelse(outside == 1, 0.8, 0.5)),
-    size=1, fatten=2, linewidth=0.7) +
+    alpha=ifelse(outside == 1, 0.8, 0.5)), fatten=2, linewidth=0.5, width=0.8) +  
   geom_vline(xintercept=0, color="red") +
   annotate("rect", xmin=rope_low, xmax=rope_high, ymin=0, ymax=Inf, alpha=.2) +
   scale_y_discrete(name=NULL) +
@@ -159,7 +159,7 @@ combined <- lang_params %>%
   ggplot(aes(x=Parameter, y=Estimate)) +
   geom_crossbar(aes(ymin=hpdi_80_low, ymax=hpdi_80_high, fill=Parameter,
                     alpha=ifelse(outside==TRUE, 1, 0.1)), 
-                size=0.5, width=0.7, fatten=0) + 
+                linewidth=0.5, width=0.7, fatten=0) + 
   geom_errorbar(aes(ymin=hpdi_low, ymax=hpdi_high, width=0.5)) +
   annotate("rect", ymin=rope_low, ymax=rope_high, xmin=0, xmax=Inf,
            alpha=.8) +
@@ -224,7 +224,7 @@ sc_per_lang_utt <- sc_params %>%
   ggplot(aes(x=SoundClass, y=Estimate)) +
   geom_crossbar(aes(ymin=hpdi_80_low, ymax=hpdi_80_high, fill=SoundClass,
                     alpha=ifelse(outside==TRUE, 1, 0.1)), 
-                size=0.5, width=0.7, fatten=0) + 
+                linewidth=0.5, width=0.7, fatten=0) + 
   geom_errorbar(aes(ymin=hpdi_low, ymax=hpdi_high, width=0.5)) +
   geom_hline(yintercept=0, color="red", alpha=0.7, linewidth=1)+
   annotate("rect", ymin=rope_low, ymax=rope_high, xmin=0, xmax=Inf, alpha=.5) +
@@ -242,7 +242,7 @@ sc_per_param <- sc_params %>%
   ggplot(aes(x=Language, y=Estimate)) +
   geom_crossbar(aes(ymin=hpdi_80_low, ymax=hpdi_80_high, fill=SoundClass,
                     alpha=ifelse(outside==TRUE, 1, 0.1)), 
-                size=0.5, width=0.7, fatten=0) + 
+                linewidth=0.5, width=0.7, fatten=0) + 
   geom_errorbar(aes(ymin=hpdi_low, ymax=hpdi_high, width=0.5)) +
   geom_hline(yintercept=0, color="red", alpha=0.7, linewidth=1)+
   annotate("rect", ymin=rope_low, ymax=rope_high, xmin=0, xmax=Inf, alpha=.5) +
@@ -287,9 +287,9 @@ speaker_plot <- speaker_variation %>%
   ggplot(aes(x=Speaker, y=Estimate)) +
   geom_crossbar(aes(ymin=hpdi_80_low, ymax=hpdi_80_high, fill=Language,
                     alpha=ifelse(outside == 1, 1, 0.1)), 
-                size=0.5, width=0.5, fatten=0) + 
+                linewidth=0.5, width=0.5, fatten=0) + 
   geom_errorbar(aes(ymin=hpdi_low, ymax=hpdi_high, width=0.3)) +
-  geom_hline(yintercept=0, color="red", alpha=0.5, size=0.5)+
+  geom_hline(yintercept=0, color="red", alpha=0.5, linewidth=0.5)+
   annotate("rect", ymin=rope_low, ymax=rope_high, xmin=0, xmax=Inf, alpha=.5) +
   scale_fill_viridis(discrete =T, begin=0, end=0.2) +
   facet_grid(Parameter~Language, space="free_x", scales="free_x") +
