@@ -7,6 +7,8 @@ library(tidyr)
 library(stringr)
 library(tidybayes)
 library(viridis)
+# TODO: library(cmdstanr) is required
+# TODO: and potentially: set_cmdstan_path("/path/to/stan")
 
 color_scheme_set("pink")
 
@@ -15,6 +17,9 @@ data <- read_tsv('data.tsv') %>%
          word_initial = as.factor(word_initial),
          utt_initial = as.factor(utt_initial))
 
+# TODO: Potentially specify Stan and cmdstanr version which was used for running this. In combination and with
+# their most recent updates, cmdstanr fails with a rather hard to debug error.
+# TODO: models/ folder is required for running this but did not exist. Add to repo with a README.md or with R?
 cl_priors <- 
   brm(data=data,
       family=lognormal(),
@@ -64,6 +69,7 @@ prior_lang_all <- lang_params %>% filter(parameter != "Intercept") %>%
   scale_alpha(guide="none") +
   theme(legend.position='bottom') + labs(fill="")
 
+# TODO: This plot looks unexpected/wrong. Or I don't understand it. :)
 ggsave("images/prior_langAll.png", prior_lang_all, scale=0.95,
        width=2000, height=1400, units="px")
 
