@@ -15,6 +15,10 @@ data <- read_tsv('data.tsv') %>%
          word_initial = as.factor(word_initial),
          utt_initial = as.factor(utt_initial))
 
+# If necessary, set path to specific cmdstan installation
+set_cmdstan_path(path = "/data/tools/stan/cmdstan-2.32.2/")
+print(cmdstan_path())
+
 cl_priors <- 
   brm(data=data,
       family=lognormal(),
@@ -69,8 +73,8 @@ prior_lang_all <- lang_params %>% filter(Parameter != "Intercept") %>%
   scale_alpha(guide="none") +
   theme(legend.position='bottom') + labs(fill="")
 
-ggsave("images/prior_langAll.png", prior_lang_all, scale=0.95,
-       width=2000, height=1400, units="px")
+ggsave("images/prior_langAll.png", prior_lang_all, scale=1,
+       width=2000, height=2000, units="px")
 
 raw_durations <- data %>% .$Duration
 

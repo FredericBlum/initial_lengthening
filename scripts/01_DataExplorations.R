@@ -27,27 +27,27 @@ cons <- data %>% group_by(sound_class, utt_initial) %>% count() %>% arrange(n)
 ################################################
 tens <- data %>% 
   filter(Duration %% 10 == 0) %>% 
-  group_by(Duration, word_initial) %>% count() %>%
-  ggplot(aes(Duration, n, col=word_initial))+
+  group_by(Duration, initial) %>% count() %>%
+  ggplot(aes(Duration, n, col=initial))+
   geom_point(size=2) +
   scale_y_log10() +
   theme_grey(base_size=11) +
   scale_color_viridis(discrete=TRUE, end=0.7) +
-  scale_x_log10(breaks=c(30, 50, 70, 100, 150, 200, 300),
-                limits=c(30, 320)) +
+  scale_x_log10(breaks=c(30, 50, 70, 100, 150, 200, 300, 500),
+                limits=c(30, 420)) +
   labs(title="Multiples of 10", col="") +
   ylab("Occurrences") + xlab("duration on log-axis")
 
 non_tens <- data %>% 
   filter(Duration %% 10 != 0) %>% 
-  group_by(Duration, word_initial) %>% count() %>%
-  ggplot(aes(Duration, n, col=word_initial))+
+  group_by(Duration, initial) %>% count() %>%
+  ggplot(aes(Duration, n, col=initial))+
   geom_point(size=2) +
   scale_y_log10() +
   theme_grey(base_size=11) +
   scale_color_viridis(discrete=TRUE, end=0.7) +
-  scale_x_log10(breaks=c(30, 50, 70, 100, 150, 200, 300),
-                limits=c(30, 320)) +
+  scale_x_log10(breaks=c(30, 50, 70, 100, 150, 200, 300, 500),
+                limits=c(30, 420)) +
   labs(title="Non-Multiples", col="") +
   ylab("Occurrences") + xlab("duration on log-axis")
 
@@ -75,17 +75,19 @@ ggsave("images/dataExpl_dens.png", dens_all, scale=1,
 #####       Between-Languages Plots        #####
 ################################################
 violin_init <- data %>% 
-  ggplot(aes(y=Duration, x=word_initial)) +
-  geom_violin(aes(fill=word_initial)) +
+  ggplot(aes(y=Duration, x=initial)) +
+  geom_violin(aes(fill=initial)) +
   geom_boxplot(width=0.5, 
                outlier.size=1, outlier.color="black", outlier.alpha=0.3) +
-  # facet_wrap(~Language, ncol=3) +
+  # If you want to plot the distribution across all languages, uncomment the
+  # following line and set ncol=n according to your needs.
+  # facet_wrap(~Language, ncol=4) +
   scale_fill_viridis(discrete=TRUE, end=0.7) +
-  scale_y_log10(limits=c(30, 500), breaks=c(30, 70, 150, 300, 500), 
+  scale_y_log10(limits=c(30, 420), breaks=c(30, 70, 150, 300, 500), 
                 name="duration on log-axis") +
   scale_x_discrete(label=NULL, name=NULL) +
   theme_grey(base_size=11) +
   theme(legend.position='bottom', legend.title=element_blank())
 
-ggsave("images/dataExpl_violinInit.png", violin_init, scale=1.3,
+ggsave("images/dataExpl_violinInit.png", violin_init, scale=1,
        width=1600, height=2300, units="px")

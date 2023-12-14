@@ -2,7 +2,7 @@ install.packages("groundhog", repos="https://ftp.fau.de/cran/")
 library("groundhog")
 set.groundhog.folder("./R_groundhog/")
 pkgs <- c("brms","viridis", "readr", "posterior", "dplyr", "ggplot2", "ggdist",
-          "gghalves", "patchwork", "bayesplot", "tidybayes", "xtable",
+          "gghalves", "patchwork", "bayesplot", "tidybayes", "xtable", "cmdstanr",
           "ggrepel", "rnaturalearth", "rnaturalearthdata", "tidyr", "stringr")
 groundhog.library(pkgs, "2023-12-03", force.install=TRUE)
 
