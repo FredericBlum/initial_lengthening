@@ -1,11 +1,17 @@
 library(dplyr)
 library(readr)
 library(brms)
+library(cmdstanr)
 
 data <- read_tsv('data.tsv') %>% 
   mutate(sound_class = paste(voicing, sound_class),
         word_initial = as.factor(word_initial),
          utt_initial = as.factor(utt_initial))
+
+# If necessary, set path to specific cmdstan installation
+set_cmdstan_path(path = "/data/tools/stan/cmdstan-2.32.2/")
+print(cmdstan_path())
+
 
 cl_max <- 
   brm(data=data,
