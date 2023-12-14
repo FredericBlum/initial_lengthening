@@ -21,7 +21,7 @@ cl_max <-
       iter=4000, warmup=2000, chains=4, cores=4,
       adapt_delta=0.85,
       seed=42,
-	  silent=0,
+      silent=0,
       file="models/cl_final_2",
       backend="cmdstanr"
   )
