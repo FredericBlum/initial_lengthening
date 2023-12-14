@@ -11,10 +11,12 @@ SELECT
         WHEN phone.cldf_id in (select cldf_id FROM word_initials) THEN 1 ELSE 0
         END word_initial, -- whether or not the phone is in word initial position
 	CASE
-		WHEN sound.cldf_cltsReference LIKE '%voiced%' THEN 'voiced' ELSE 'voiceless'
+		WHEN sound.cldf_cltsReference LIKE '%devoiced%' THEN 'voiceless' 
+		WHEN sound.cldf_cltsReference LIKE '%voiceless%' THEN 'voiceless' ELSE 'voiced'
 		END voicing,
     CASE
-        WHEN sound.cldf_cltsReference LIKE '%stop%' THEN 'stop' 
+        WHEN sound.cldf_cltsReference LIKE '%stop%' THEN 'stop'
+		WHEN sound.cldf_cltsReference LIKE '%affricate%' THEN 'stop'
 		WHEN sound.cldf_cltsReference LIKE '%fricative%' THEN 'fricative' ELSE 'sonorant'
         END sound_class,
     -- normalized word length:
