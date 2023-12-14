@@ -27,7 +27,7 @@ cl_max <-
       iter=10000, warmup=2500, chains=4, cores=4,
       threads=threading(2),
       adapt_delta=0.85,
-	  silent=0,
+      silent=0,
       seed=42,
       file="models/cl_tiny_new",
       backend="cmdstanr"
