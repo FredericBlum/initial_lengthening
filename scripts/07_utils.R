@@ -8,7 +8,14 @@ library(xtable)
 
 ###################################
 data <- read_tsv('data.tsv') %>% 
-  mutate(Glottocode=Language)
+  mutate(Glottocode=Language,
+        sound_class=paste(voicing, sound_class),
+         word_initial=as.factor(word_initial),
+         utt_initial=as.factor(utt_initial),
+         initial=ifelse(
+           utt_initial==1, "utterance-initial", ifelse(
+             word_initial==1, "word-initial", "non-initial"
+           )))
 
 lang_vec <- unique(data$Language)
 languages <- read_csv('../doreco/cldf/languages.csv')
@@ -39,6 +46,15 @@ data_table <- languages %>%
          label="table:data")
 
 print(xtable(data_table), include.rownames=FALSE)
+
+################################################
+#####             Random statistics         ####
+################################################
+data %>% 
+  # Comment out for overall mean
+  group_by(initial) %>%
+  summarize(mean = mean(Duration))
+
 
 ################################################
 #####             Maps                     #####
