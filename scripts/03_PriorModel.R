@@ -7,6 +7,7 @@ library(tidyr)
 library(stringr)
 library(tidybayes)
 library(viridis)
+library(cmdstanr)
 
 color_scheme_set("pink")
 
@@ -102,5 +103,5 @@ prior_overlay <- ppc_dens_overlay(raw_durations, priorsim_durations[1:8, ],
 prior_overlay$scales$scales[[1]]$labels <- c("data", "prior")
 
 prior_sim <- ((prior_box / prior_overlay) + plot_layout(guides="collect"))
-ggsave("images/prior_simData.png", prior_sim, scale=1.2,
+ggsave("images/prior_simData.png", prior_sim, scale=1,
        width=2000, height=1400, units="px")

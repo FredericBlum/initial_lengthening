@@ -14,6 +14,8 @@ library(xtable)
 ###################################################################
 model <- readRDS(file="models/cl_final.rds")
 
+
+# Change path to the 'doreco/cldf/languages.csv' file if necessary
 languages <- read_csv('../doreco/cldf/languages.csv') %>% 
   mutate(Language=Name, Glottocide=ID) %>% select(Glottocode, Language) 
 
@@ -155,7 +157,7 @@ ggsave("images/viz_uttInit.png", utt_init,
        width=2000, height=2500, units="px")
 
 combined <- lang_params %>% 
-  mutate(Parameter = str_replace(Parameter, "utt-", "utterance-")) %>% 
+  mutate(Parameter=str_replace(Parameter, "utt-", "utterance-")) %>% 
   ggplot(aes(x=Parameter, y=Estimate)) +
   geom_crossbar(aes(ymin=hpdi_80_low, ymax=hpdi_80_high, fill=Parameter,
                     alpha=ifelse(outside==TRUE, 1, 0.1)), 
@@ -166,7 +168,7 @@ combined <- lang_params %>%
   scale_fill_viridis(discrete=T, begin=0, end=0.7) +
   facet_wrap(~Language, ncol=6) +
   scale_x_discrete(name=NULL, labels=NULL) +
-  scale_y_continuous(breaks = c(0.3, 0, -0.3)) +
+  scale_y_continuous(breaks=c(0.3, 0, -0.3)) +
   scale_alpha(guide="none") +
   theme(legend.position='bottom') + labs(fill="")
 
@@ -209,10 +211,10 @@ sc_per_lang_word <- sc_params %>%
   geom_errorbar(aes(ymin=hpdi_low, ymax=hpdi_high, width=0.5)) +
   geom_hline(yintercept=0, color="red", alpha=0.7, linewidth=1)+
   annotate("rect", ymin=rope_low, ymax=rope_high, xmin=0, xmax=Inf, alpha=.5) +
-  scale_fill_viridis(discrete=T, begin=0, end=0.75) +
+  scale_fill_viridis(discrete=T, begin=0, end=1) +
   facet_wrap(~Language, ncol=4) +
   scale_x_discrete(name=NULL, labels=NULL) +
-  scale_y_continuous(breaks = c(0.3, 0, -0.3)) +
+  scale_y_continuous(breaks=c(0.3, 0, -0.3)) +
   scale_alpha(guide="none") +
   theme(legend.position='bottom') + labs(fill="")
 
@@ -228,10 +230,10 @@ sc_per_lang_utt <- sc_params %>%
   geom_errorbar(aes(ymin=hpdi_low, ymax=hpdi_high, width=0.5)) +
   geom_hline(yintercept=0, color="red", alpha=0.7, linewidth=1)+
   annotate("rect", ymin=rope_low, ymax=rope_high, xmin=0, xmax=Inf, alpha=.5) +
-  scale_fill_viridis(discrete=T, begin=0, end=0.75) +
+  scale_fill_viridis(discrete=T, begin=0, end=1) +
   facet_wrap(~Language, ncol=8) +
   scale_x_discrete(name=NULL, labels=NULL) +
-  scale_y_continuous(breaks = c(0.3, 0, -0.3)) +
+  scale_y_continuous(breaks=c(0.3, 0, -0.3)) +
   scale_alpha(guide="none") +
   theme(legend.position='bottom') + labs(fill="")
 
@@ -240,20 +242,21 @@ ggsave('images/sc_per_lang_utt.png', sc_per_lang_utt, scale=1,
 
 sc_per_param <- sc_params %>% 
   ggplot(aes(x=Language, y=Estimate)) +
+  geom_errorbar(aes(ymin=hpdi_low, ymax=hpdi_high, width=0.5)) +
   geom_crossbar(aes(ymin=hpdi_80_low, ymax=hpdi_80_high, fill=SoundClass), 
                 linewidth=0.5, width=0.7, fatten=0) + 
-  # geom_errorbar(aes(ymin=hpdi_low, ymax=hpdi_high, width=0.5)) +
   geom_hline(yintercept=0, color="red", alpha=0.7, linewidth=1)+
   annotate("rect", ymin=rope_low, ymax=rope_high, xmin=0, xmax=Inf, alpha=.5) +
-  scale_fill_viridis(discrete=T, begin=0, end=0.9) +
-  facet_grid(Parameter~SoundClass) +
-  scale_x_discrete(name=NULL, labels=NULL) +
-  scale_y_continuous(breaks = c(0.3, 0, -0.3)) +
+  scale_fill_viridis(discrete=T, begin=0, end=1) +
+  facet_grid(SoundClass~Parameter) +
+  scale_x_discrete(name=NULL) +
+  scale_y_continuous(breaks=c(0.3, 0, -0.3)) +
   scale_alpha(guide="none") +
-  theme(legend.position='bottom') + labs(fill="")
+  theme(legend.position='bottom', strip.text.y=element_blank(),
+        axis.text.x=element_text(angle=90, vjust=0.5, hjust=1)) 
 
 ggsave('images/sc_per_param.png', sc_per_param, scale=1,
-       width=3000, height=2000, units="px")
+       width=4000, height=3000, units="px")
 
 #########################################
 ###     Speaker parameters            ###
@@ -297,7 +300,7 @@ speaker_plot_word <- speaker_variation %>%
   scale_y_continuous(limits=c(-0.3, 0.32), name="Estimated value") +
   theme(legend.position='none')
 
-ggsave('images/speaker_word.png', speaker_plot_word, scale=1,
+ggsave('images/speaker_word.png', speaker_plot_word, scale=0.89,
        width=2000, height=3000, units="px")
 
 speaker_plot_utt <- speaker_variation %>% 
@@ -315,5 +318,5 @@ speaker_plot_utt <- speaker_variation %>%
   scale_y_continuous(limits=c(-0.32, 0.32), name="Estimated value") +
   theme(legend.position='none')
 
-ggsave('images/speaker_utt.png', speaker_plot_utt, scale=1,
+ggsave('images/speaker_utt.png', speaker_plot_utt, scale=0.89,
        width=2000, height=3000, units="px")

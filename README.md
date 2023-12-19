@@ -4,7 +4,6 @@
 
 This workflow leads you through the process of reproducing our analysis. We use certain system dependencies that we assume to be installed, like `sqlite3`, `git`, `Python`, and `R`. We recommend to run all the code in a fresh virtual environment. The code was tested using `cmdstan` version 2.32.2 and might not work with other versions. Please make sure to have the correct version installed.
 
-
 To start, please first clone this repository to your workspace and `cd` into the directory.
 
 ```bash
@@ -61,6 +60,6 @@ Now you are in a folder full of R-Scripts. The first script `00_setup.R` include
 Rscript 00_setup.R
 ```
 
-Please not that the two scripts which run the brms-model are currently commented out. This has a simple reason: Running them takes several days. If you want to re-run the model, please go to the respective script and run it from there, or un-comment the line in `00_setup.R`. We provide the fitted model within our OSF-repository, so that you do not need to re-run the model.
+Please not that the two scripts which run the brms-model are currently commented out. This has a simple reason: Running them takes several days. If you want to re-run the model, please go to the respective script and run it from there, or un-comment the line in `00_setup.R`. We provide the fitted model within our OSF-repository [here](https://osf.io/tc9zx/?view_only=a658d5da64a7431f87d993b71a8e184c) so that you do not need to re-run the model.
 
 If you want to run code from within the individual R-files, please set the working directory to the `scripts`-folder so that all the code is run correctly.

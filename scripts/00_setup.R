@@ -17,4 +17,4 @@ source("03_PriorModel.R")
 
 source("05_ModelConvergence.R")
 source("06_BayesViz.R")
-source("utils.R")
+source("07_utils.R")
