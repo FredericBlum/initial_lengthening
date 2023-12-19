@@ -21,11 +21,6 @@ data <- read_tsv('data.tsv') %>%
 #set_cmdstan_path(path = "/data/tools/stan/cmdstan-2.32.2/")
 print(cmdstan_path())
 
-# TODO: Even with the same seed, my priors differed quite a bit. I'm inclined
-# to think that this is not a huge issue, but I'd like to be able to replicate
-# the paper 'defaults' more closely. Maybe there have been other recent changes
-# that I haven't pulled yet that affect this? No need to immediately do anything
-# here, I'll investigate and just wanted to highlight this.
 cl_priors <- 
   brm(data=data,
       family=lognormal(),
