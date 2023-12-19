@@ -24,7 +24,7 @@ cl_max <-
               prior(exponential(12), class=sd),
               prior(lkj(5), class=cor)),    
       iter=4000, warmup=2000, chains=4, cores=4,
-      adapt_delta=0.85,
+      control = list(adapt_delta=0.80, max_treedepth=10),
       seed=42,
       silent=0,
       file="models/cl_final",
