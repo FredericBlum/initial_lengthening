@@ -19,4 +19,6 @@ source("03_PriorModel.R")
 
 source("05_ModelConvergence.R")
 source("06_BayesViz.R")
+
+# TODO: This name has been changed 07_utils.R
 source("utils.R")

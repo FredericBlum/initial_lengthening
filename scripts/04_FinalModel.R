@@ -8,6 +8,7 @@ data <- read_tsv('data.tsv') %>%
          word_initial = as.factor(word_initial),
          utt_initial = as.factor(utt_initial))
 
+# TODO: See other set_cmdstan_path comment.
 # If necessary, set path to specific cmdstan installation
 set_cmdstan_path(path = "/data/tools/stan/cmdstan-2.32.2/")
 print(cmdstan_path())

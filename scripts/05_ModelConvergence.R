@@ -102,6 +102,8 @@ if (file.exists("models/post_pred.rds")) {
 duration_vals <- data %>% pull(Duration)
 group_init <- data %>% pull(initial)
 
+# TODO: Can't reproduce that with the latest post_pred.rds from OSF:
+# Error in sim_data[1:5, ] : subscript out of bounds
 box_comp <- ppc_boxplot(duration_vals, sim_data[1:5, ])  +
   coord_cartesian(ylim=c(5, 800), expand=F) +
   scale_y_log10(breaks=c(10, 30, 100, 300, 750)) +
@@ -123,5 +125,6 @@ violin_comp <- ppc_violin_grouped(duration_vals, sim_data[1:4,], group_init,
 # box_comp$scales$scales[[1]]$labels <- c("data", "simulated")
 # box_comp$scales$scales[[2]]$labels <- c("data", "simulated")
 
+# TODO: Couldn't reproduce yet, see sim_data oob above.
 ppc_sum <- (box_comp) / (violin_comp) + plot_layout(guides="collect")
 ggsave('images/eval_ppcsum.png', ppc_sum, width=2000, height=1300, units="px")

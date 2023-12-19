@@ -14,7 +14,9 @@ library(xtable)
 ###################################################################
 model <- readRDS(file="models/cl_final.rds")
 
-languages <- read_csv('../doreco/cldf/languages.csv') %>% 
+# TODO: Another hint might be useful in case users aren't following the exact
+# same directory structure, change path to doreco/cldf/languages.csv etc.
+languages <- read_csv('languages.csv') %>% 
   mutate(Language=Name, Glottocide=ID) %>% select(Glottocode, Language) 
 
 rope_high=0.01
@@ -113,6 +115,8 @@ overall_areas <- mcmc_areas(model, regex_pars=c("^b_(utt|word)_initial1$", "z_")
   scale_x_continuous(name="Effect on log-scale") +
   theme_bw()
 
+# TODO: Color for me is different. I suppose this was changed in a recent commit,
+# if intended, just ignore.
 ggsave('images/viz_overall.png', overall_areas, scale=1,
        width=2000, height=1000, units="px")
 
@@ -297,6 +301,7 @@ speaker_plot_word <- speaker_variation %>%
   scale_y_continuous(limits=c(-0.3, 0.32), name="Estimated value") +
   theme(legend.position='none')
 
+# TODO: For a number of tiles, the language name is too long to fit into the title bar.
 ggsave('images/speaker_word.png', speaker_plot_word, scale=1,
        width=3000, height=2000, units="px")
 
@@ -315,5 +320,6 @@ speaker_plot_utt <- speaker_variation %>%
   scale_y_continuous(limits=c(-0.32, 0.32), name="Estimated value") +
   theme(legend.position='none')
 
+# TODO: Likewise, language names too long.
 ggsave('images/speaker_utt.png', speaker_plot_utt, scale=1,
        width=3000, height=2000, units="px")

@@ -16,9 +16,16 @@ data <- read_tsv('data.tsv') %>%
          utt_initial = as.factor(utt_initial))
 
 # If necessary, set path to specific cmdstan installation
-set_cmdstan_path(path = "/data/tools/stan/cmdstan-2.32.2/")
+# TODO: I think a default isn't necessary here, just the comment above and
+# set_cmdstan_path(path = "") or similarly
+#set_cmdstan_path(path = "/data/tools/stan/cmdstan-2.32.2/")
 print(cmdstan_path())
 
+# TODO: Even with the same seed, my priors differed quite a bit. I'm inclined
+# to think that this is not a huge issue, but I'd like to be able to replicate
+# the paper 'defaults' more closely. Maybe there have been other recent changes
+# that I haven't pulled yet that affect this? No need to immediately do anything
+# here, I'll investigate and just wanted to highlight this.
 cl_priors <- 
   brm(data=data,
       family=lognormal(),
@@ -78,6 +85,8 @@ ggsave("images/prior_langAll.png", prior_lang_all, scale=1,
 
 raw_durations <- data %>% .$Duration
 
+# TODO: Do filenames differ from the ones stored on OSF?
+# I.e. OSF: pred_prior.rds, here: prior_pred.rds.
 if (file.exists("models/prior_pred.rds")) {
   priorsim_durations <- readRDS(file="models/prior_pred.rds")
 } else{
@@ -101,6 +110,8 @@ prior_overlay <- ppc_dens_overlay(raw_durations, priorsim_durations[1:8, ],
 
 prior_overlay$scales$scales[[1]]$labels <- c("data", "prior")
 
+# TODO: Not sure I like the way the two plots are stacked with their axis labels.
+# Include density axis on at least y for the bottom plot to make this clearer?
 prior_sim <- ((prior_box / prior_overlay) + plot_layout(guides="collect"))
 ggsave("images/prior_simData.png", prior_sim, scale=1.2,
        width=2000, height=1400, units="px")
