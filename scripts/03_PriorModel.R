@@ -30,8 +30,7 @@ cl_priors <-
               prior(normal(0, 0.3), class=b),
               prior(exponential(12), class=sd),
               prior(lkj(5), class=cor)),    
-      iter=5000, warmup=2000, chains=2, cores=4,
-      threads=threading(2),
+      iter=4000, warmup=2000, chains=4, cores=4,
       seed=42,
       sample_prior="only",
       file="models/cl_priors",
@@ -41,9 +40,9 @@ cl_priors <-
 para_vals <- posterior_summary(cl_priors) %>% 
   data.frame() %>% as_tibble(rownames="Parameter")
 
-hpdi_vals <- posterior_interval(cl_priors, prob=0.89) %>% 
+hpdi_vals <- posterior_interval(cl_priors, prob=0.80) %>% 
   data.frame() %>% as_tibble(rownames="Parameter") %>% 
-  rename(hpdi_low=X5.5., hpdi_high=X94.5.)
+  rename(hpdi_low=X10., hpdi_high=X90.)
 
 para_vals <- para_vals %>% left_join(hpdi_vals)
 lang_params <- para_vals %>% filter(grepl("^r_Language.*", para_vals$Parameter)) %>% 
@@ -78,12 +77,13 @@ ggsave("images/prior_langAll.png", prior_lang_all, scale=1,
 
 raw_durations <- data %>% .$Duration
 
-if (file.exists("models/prior_pred.rds")) {
-  priorsim_durations <- readRDS(file="models/prior_pred.rds")
+if (file.exists("models/pred_prior.rds")) {
+  priorsim_durations <- readRDS(file="models/pred_prior.rds")
 } else{
+  print("Sorry, the file does not yet exist. This may take some time.")
   priorsim_durations <- posterior_predict(cl_priors, ndraws=8, 
                                           cores=getOption("mc.cores", 4))
-  saveRDS(priorsim_durations, file="models/prior_pred.rds")
+  saveRDS(priorsim_durations, file="models/pred_prior.rds")
 } 
 
 prior_box <- ppc_boxplot(raw_durations, priorsim_durations[4:8, ])  + 

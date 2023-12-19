@@ -292,13 +292,13 @@ speaker_plot_word <- speaker_variation %>%
   geom_hline(yintercept=0, color="red", alpha=0.5, linewidth=0.5)+
   annotate("rect", ymin=rope_low, ymax=rope_high, xmin=0, xmax=Inf, alpha=.5) +
   scale_fill_viridis(discrete =T, begin=0, end=0.2) +
-  facet_wrap(~Language, scales="free_x", ncol=8) +
+  facet_wrap(~Language, scales="free_x", ncol=6) +
   scale_x_discrete(name=NULL, labels=NULL)  +
   scale_y_continuous(limits=c(-0.3, 0.32), name="Estimated value") +
   theme(legend.position='none')
 
 ggsave('images/speaker_word.png', speaker_plot_word, scale=1,
-       width=3000, height=2000, units="px")
+       width=2000, height=3000, units="px")
 
 speaker_plot_utt <- speaker_variation %>% 
   filter(Parameter=='utt-initial') %>% 
@@ -310,10 +310,10 @@ speaker_plot_utt <- speaker_variation %>%
   geom_hline(yintercept=0, color="red", alpha=0.5, linewidth=0.5)+
   annotate("rect", ymin=rope_low, ymax=rope_high, xmin=0, xmax=Inf, alpha=.5) +
   scale_fill_viridis(discrete =T, begin=0, end=0.2) +
-  facet_wrap(~Language, scales="free_x", ncol=8) +
+  facet_wrap(~Language, scales="free_x", ncol=6) +
   scale_x_discrete(name=NULL, labels=NULL)  +
   scale_y_continuous(limits=c(-0.32, 0.32), name="Estimated value") +
   theme(legend.position='none')
 
 ggsave('images/speaker_utt.png', speaker_plot_utt, scale=1,
-       width=3000, height=2000, units="px")
+       width=2000, height=3000, units="px")

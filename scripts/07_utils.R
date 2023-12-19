@@ -10,9 +10,7 @@ library(xtable)
 data <- read_tsv('data.tsv') %>% 
   mutate(Glottocode=Language,
         sound_class=paste(voicing, sound_class),
-         word_initial=as.factor(word_initial),
-         utt_initial=as.factor(utt_initial),
-         initial=ifelse(
+        initial=ifelse(
            utt_initial==1, "utterance-initial", ifelse(
              word_initial==1, "word-initial", "non-initial"
            )))

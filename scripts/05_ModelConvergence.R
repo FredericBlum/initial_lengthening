@@ -70,7 +70,7 @@ rhat_all <- mcmc_rhat(rhats_max) + xlab("R-hat value") +
 
 rhat_val <- rhats_max[lapply(rhats_max, as.numeric) > 1.004]
 rhat_filter <- mcmc_rhat(rhat_val) + yaxis_text(hjust=1) +
-  scale_x_continuous(breaks=c(0.1, 0.2), limits=c(1, 1.02)) +
+  scale_x_continuous(breaks=c(1, 1.005, 1.01), limits=c(1, 1.015)) +
   theme(legend.position="none")
 
 ###########################################
@@ -91,18 +91,18 @@ ggsave('images/eval_rhat_neff.png', rhat_neff_plot, scale=1)
 #########################################
 ###     posterior predictive checks   ###
 #########################################
-if (file.exists("models/post_pred.rds")) {
-  sim_data <- readRDS(file="models/post_pred.rds")
+if (file.exists("models/pred_post.rds")) {
+  sim_data <- readRDS(file="models/pred_post.rds")
 } else{
   print("Sorry, the file does not yet exist. This may take some time.")
-  sim_data <- posterior_predict(model, ndraws=8, cores=getOption("mc.cores", 8))
-  saveRDS(sim_data, file="models/post_pred.rds")  
+  sim_data <- posterior_predict(model, ndraws=4, cores=getOption("mc.cores", 4))
+  saveRDS(sim_data, file="models/pred_post.rds")  
 }
 
 duration_vals <- data %>% pull(Duration)
 group_init <- data %>% pull(initial)
 
-box_comp <- ppc_boxplot(duration_vals, sim_data[1:5, ])  +
+box_comp <- ppc_boxplot(duration_vals, sim_data[1:4, ])  +
   coord_cartesian(ylim=c(5, 800), expand=F) +
   scale_y_log10(breaks=c(10, 30, 100, 300, 750)) +
   coord_cartesian(xlim=c(0.99, 6)) +
