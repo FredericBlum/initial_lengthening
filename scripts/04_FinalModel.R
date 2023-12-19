@@ -27,6 +27,6 @@ cl_max <-
       adapt_delta=0.85,
       seed=42,
       silent=0,
-      file="models/cl_final_2",
+      file="models/cl_final",
       backend="cmdstanr"
   )

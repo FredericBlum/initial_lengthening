@@ -16,33 +16,15 @@ data <- read_tsv('data.tsv') %>%
       		word_initial==1, "word", "other"
   )))
 
-cl_max <- readRDS(file="models/cl_final_tiny_3.rds")
+model <- readRDS(file="models/cl_final.rds")
 
-duration_vals <- data %>% pull(Duration)
-group_init <- data %>% pull(initial)
-
-if (file.exists("models/post_pred.rds")) {
-  sim_data <- readRDS(file="models/post_pred.rds")
-} else{
-  print("Sorry, the file does not yet exist. This may take some time.")
-  sim_data <- posterior_predict(cl_max, ndraws=8, cores=getOption("mc.cores", 8))
-  saveRDS(sim_data, file="models/post_pred.rds")  
-}
 
 #########################################
 ###     model convergence             ###
 #########################################
-lp_max <- log_posterior(cl_max)
-np_max <- nuts_params(cl_max)
-posterior_max <- as.array(cl_max)
-
-# mcmc_parcoord(posterior_max, regex_pars=c("^b_"))
-# scatter_max <- mcmc_scatter(
-#   posterior_max, 
-#   pars = c("b_Intercept", "sigma"), 
-#   np = np_max,
-#   size = 1
-# )
+lp_max <- log_posterior(model)
+np_max <- nuts_params(model)
+posterior_max <- as.array(model)
 
 # mcmc_pairs: up to 8 parameters, divergent transitions and collinearity between parameters
 pred_pairs <- mcmc_pairs(posterior_max, np=np_max, regex_pars=c("^b_"), 
@@ -57,7 +39,7 @@ zipfs_pairs <- mcmc_pairs(posterior_max, np=np_max, regex_pars=c("^b_z_"),
 ggsave('images/viz_pairsPredz.png', zipfs_pairs, scale=1.3,
        width=3000, height=2800, units="px")
 
-collinearity_pred <- as_draws_df(cl_max) %>% 
+collinearity_pred <- as_draws_df(model) %>% 
   select(b_z_speech_rate:b_z_word_freq) %>% 
   cor()
 
@@ -81,29 +63,26 @@ eval_chains <- (both_traces /  both_ranks)
 ggsave('images/eval_chains.png', eval_chains, scale=1)
 
 ########################################
-rhats_max <- brms::rhat(cl_max)
+rhats_max <- brms::rhat(model)
 rhat_all <- mcmc_rhat(rhats_max) + xlab("R-hat value") +
-  coord_cartesian(xlim=c(0.99995, 1.001)) +
-  scale_x_continuous(breaks=seq(from=1, to=1.001, by=0.0002)) +
+  scale_x_continuous(breaks=c(1.0, 1.005, 1.01), limits=c(1, 1.01)) +
   theme(legend.position="none")
 
-rhat_val <- rhats_max[lapply(rhats_max, as.numeric) > 1.01]
+rhat_val <- rhats_max[lapply(rhats_max, as.numeric) > 1.004]
 rhat_filter <- mcmc_rhat(rhat_val) + yaxis_text(hjust=1) +
-  # coord_cartesian(xlim=c(1.00, 1.01)) +
-  scale_x_continuous(breaks=seq(from=1.0, to=1.01, by=0.005),
-                     limits=c(1, 1.03)) +
+  scale_x_continuous(breaks=c(0.1, 0.2), limits=c(1, 1.02)) +
   theme(legend.position="none")
 
 ###########################################
-neff_max <- neff_ratio(cl_max)
+neff_max <- neff_ratio(model)
 neff_all_plot <- mcmc_neff(neff_max, size=2) + 
-  scale_x_continuous(breaks=seq(from=0, to=5, by=0.5)) +
+  scale_x_continuous(breaks=c(0, 0.5, 1)) +
   xlab("Effective sample size")  +
   theme(legend.position="none")
 
 neff_filter <- neff_max[lapply(neff_max, as.numeric) < 0.15]
 neff_fil_plot <- mcmc_neff(neff_filter, size=2) + yaxis_text(hjust=1) + 
-  scale_x_continuous(breaks=c(0.1, 0.2), limits=c(0, 0.5))  +
+  scale_x_continuous(breaks=c(0.1, 0.2), limits=c(0, 0.2))  +
   theme(legend.position="none")
 
 rhat_neff_plot <- (rhat_all + rhat_filter) / (neff_all_plot + neff_fil_plot)
@@ -112,6 +91,17 @@ ggsave('images/eval_rhat_neff.png', rhat_neff_plot, scale=1)
 #########################################
 ###     posterior predictive checks   ###
 #########################################
+if (file.exists("models/post_pred.rds")) {
+  sim_data <- readRDS(file="models/post_pred.rds")
+} else{
+  print("Sorry, the file does not yet exist. This may take some time.")
+  sim_data <- posterior_predict(model, ndraws=8, cores=getOption("mc.cores", 8))
+  saveRDS(sim_data, file="models/post_pred.rds")  
+}
+
+duration_vals <- data %>% pull(Duration)
+group_init <- data %>% pull(initial)
+
 box_comp <- ppc_boxplot(duration_vals, sim_data[1:5, ])  +
   coord_cartesian(ylim=c(5, 800), expand=F) +
   scale_y_log10(breaks=c(10, 30, 100, 300, 750)) +
