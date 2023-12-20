@@ -30,7 +30,7 @@ speaker_sex <- speakers %>%
   inner_join(spk) %>% group_by(sex) %>% 
   summarise("Sex"=n())
 
-count_speaker <- data %>% # group_by(Glottocode) %>% 
+count_speaker <- data %>% group_by(Glottocode) %>% 
   summarise("Speakers"=n_distinct(Speaker))
 
 count_ipu <- data %>% group_by(Glottocode) %>% 
@@ -41,6 +41,7 @@ count_words <- data %>% group_by(Glottocode) %>%
 
 count_phones <- data %>% group_by(Glottocode) %>% 
   summarise("Phones"=n_distinct(ID))
+
 
 data_table <- languages %>% 
   mutate(Source = paste("\\", "cite{", Source,"}", sep="")) %>% 

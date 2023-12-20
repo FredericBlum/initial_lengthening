@@ -219,7 +219,7 @@ sc_per_lang_word <- sc_params %>%
   theme(legend.position='bottom') + labs(fill="")
 
 ggsave('images/sc_per_lang_word.png', sc_per_lang_word, scale=1,
-       width=2000, height=3000, units="px")
+       width=2200, height=3500, units="px")
 
 sc_per_lang_utt <- sc_params %>% 
   filter(Parameter=="utt-initial") %>% 
@@ -231,20 +231,21 @@ sc_per_lang_utt <- sc_params %>%
   geom_hline(yintercept=0, color="red", alpha=0.7, linewidth=1)+
   annotate("rect", ymin=rope_low, ymax=rope_high, xmin=0, xmax=Inf, alpha=.5) +
   scale_fill_viridis(discrete=T, begin=0, end=1) +
-  facet_wrap(~Language, ncol=8) +
+  facet_wrap(~Language, ncol=4) +
   scale_x_discrete(name=NULL, labels=NULL) +
   scale_y_continuous(breaks=c(0.3, 0, -0.3)) +
   scale_alpha(guide="none") +
   theme(legend.position='bottom') + labs(fill="")
 
 ggsave('images/sc_per_lang_utt.png', sc_per_lang_utt, scale=1,
-       width=3000, height=2000, units="px")
+       width=2200, height=3500, units="px")
 
 sc_per_param_utt <- sc_params %>% 
   filter(Parameter=="utt-initial") %>% 
   ggplot(aes(x=Language, y=Estimate)) +
   geom_errorbar(aes(ymin=hpdi_low, ymax=hpdi_high, width=0.5)) +
-  geom_crossbar(aes(ymin=hpdi_80_low, ymax=hpdi_80_high, fill=SoundClass), 
+  geom_crossbar(aes(ymin=hpdi_80_low, ymax=hpdi_80_high, fill=SoundClass,
+                    alpha=ifelse(outside==TRUE, 1, 0.7)),
                 linewidth=0.5, width=0.7, fatten=0) + 
   geom_hline(yintercept=0, color="red", alpha=0.7, linewidth=1)+
   annotate("rect", ymin=rope_low, ymax=rope_high, xmin=0, xmax=Inf, alpha=.5) +
@@ -263,7 +264,8 @@ sc_per_param_word <- sc_params %>%
   filter(Parameter=="word-initial") %>% 
   ggplot(aes(x=Language, y=Estimate)) +
   geom_errorbar(aes(ymin=hpdi_low, ymax=hpdi_high, width=0.5)) +
-  geom_crossbar(aes(ymin=hpdi_80_low, ymax=hpdi_80_high, fill=SoundClass), 
+  geom_crossbar(aes(ymin=hpdi_80_low, ymax=hpdi_80_high, fill=SoundClass,
+                    alpha=ifelse(outside==TRUE, 1, 0.7)),
                 linewidth=0.5, width=0.7, fatten=0) + 
   geom_hline(yintercept=0, color="red", alpha=0.7, linewidth=1)+
   annotate("rect", ymin=rope_low, ymax=rope_high, xmin=0, xmax=Inf, alpha=.5) +
