@@ -18,10 +18,19 @@ data <- read_tsv('data.tsv') %>%
 lang_vec <- unique(data$Language)
 languages <- read_csv('../doreco/cldf/languages.csv')
 
+# Speaker Table has 396 entries, but only 393 contribute data
+speakers <- read_csv('../doreco/cldf/speakers.csv')
+data %>% group_by(Speaker) %>% summarise(n=n())
+
 ###################################
 ###     Preprocessing numbers   ###
 ###################################
-count_speaker <- data %>% group_by(Glottocode) %>% 
+spk <- tibble(ID = unique(data$Speaker))
+speaker_sex <- speakers %>%
+  inner_join(spk) %>% group_by(sex) %>% 
+  summarise("Sex"=n())
+
+count_speaker <- data %>% # group_by(Glottocode) %>% 
   summarise("Speakers"=n_distinct(Speaker))
 
 count_ipu <- data %>% group_by(Glottocode) %>% 
