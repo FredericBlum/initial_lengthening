@@ -17,7 +17,7 @@ data <- read_tsv('data.tsv') %>%
   )))
 
 model <- readRDS(file="models/cl_final.rds")
-
+model <- readRDS(file="models/cl_warl.rds")
 
 #########################################
 ###     model convergence             ###
@@ -27,9 +27,9 @@ np_max <- nuts_params(model)
 posterior_max <- as.array(model)
 
 # mcmc_pairs: up to 8 parameters, divergent transitions and collinearity between parameters
-pred_pairs <- mcmc_pairs(posterior_max, np=np_max, regex_pars=c("^b_"), 
+pred_pairs <- mcmc_pairs(posterior_max, np=np_max, pars=c('b_Intercept', 'sigma', 'b_z_word_freq', 'b_word_initial1'), 
                          off_diag_args=list(size=0.75))
-
+diver_scatter <- mcmc_scatter(posterior_max, np=np_max, regex_pars=c('b_Intercept', 'sigma'))
 ggsave('images/viz_pairsPred.png', pred_pairs, scale=1.3,
        width=3000, height=2800, units="px")
 

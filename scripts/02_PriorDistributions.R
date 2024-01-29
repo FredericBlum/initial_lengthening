@@ -31,7 +31,7 @@ predictors <- tibble(x = c(rnorm(n, 0, 0.3))) %>%
 #########################################
 
 # values for intercept
-int_vals <- c(rnorm(n, mean = 4.4, sd = 0.2)) 
+int_vals <- c(rnorm(n, mean = 4.5, sd = 0.1)) 
 int_vals %>% tibble() %>% ggplot(aes(x = .)) + geom_density()
 
 # sigma for intercept
@@ -58,9 +58,9 @@ sample_ints <- tibble(x = c(rlnorm(n,
 #########################################
 ###         sigma2                    ###
 #########################################
-sigma2 <- rexp(n, rate = 12) %>% 
+sigma2 <- rexp(n, rate = 10) %>% 
   tibble() %>% 
-  mutate(group = 'sigma%~% exp(12)') %>% 
+  mutate(group = 'sigma%~% exp(10)') %>% 
   ggplot(aes(x=.)) + 
   geom_density(aes(fill = group)) +
   scale_y_continuous(breaks = NULL,
@@ -71,7 +71,7 @@ sigma2 <- rexp(n, rate = 12) %>%
   scale_fill_viridis(discrete = T, alpha = 0.7, end = 0.7) +
   theme(legend.position = "none",
         plot.title = element_text(size = 14)) +  
-  labs(title = "σ ~ Exp(12)")
+  labs(title = "σ ~ Exp(10)")
 
 #########################################
 ###     varying slopes matrix         ###
