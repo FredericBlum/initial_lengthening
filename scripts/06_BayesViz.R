@@ -67,6 +67,7 @@ lang_params <- para_vals %>%
 langWord <- lang_params %>% filter(Parameter == "word-initial")
 langUtt <- lang_params %>% filter(Parameter == "utt-initial")
 
+
 pop_level <- c("b_z_speech_rate", "b_z_num_phones", "b_z_word_freq",
                "utt-initial", "word-initial")
 
