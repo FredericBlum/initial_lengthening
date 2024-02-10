@@ -17,7 +17,7 @@ data <- read_tsv('data.tsv') %>%
   )))
 
 model <- readRDS(file="models/cl_final.rds")
-model <- readRDS(file="models/cl_warl.rds")
+model <- readRDS(file="models/cl_gamma.rds")
 
 #########################################
 ###     model convergence             ###

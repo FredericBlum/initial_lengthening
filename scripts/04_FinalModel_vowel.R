@@ -19,12 +19,12 @@ cl_max <-
       formula=Duration ~ 1 + utt_initial + word_initial + utt_final +
         (1 + utt_initial + word_initial + utt_final| Language / (sound_class + Speaker)) +
         z_num_phones + z_word_freq = z_speech_rate,
-      prior=c(prior(normal(4.5, 0.1), class=Intercept),
+      prior=c(prior(normal(4.6, 0.1), class=Intercept),
               prior(normal(5, 0.5), class=shape),
               prior(normal(0, 0.3), class=b),
-              prior(exponential(10), class=sd),
+              prior(exponential(12), class=sd),
               prior(lkj(5), class=cor)),
-      iter=3000, warmup=2500, chains=4, cores=4,
+      iter=5000, warmup=2500, chains=4, cores=4,
       control=list(adapt_delta=0.90, max_treedepth=10),
       seed=1,
       silent=0,

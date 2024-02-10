@@ -58,7 +58,7 @@ sample_ints <- tibble(x = c(rlnorm(n,
 #########################################
 ###         sigma2                    ###
 #########################################
-sigma2 <- rexp(n, rate = 10) %>% 
+sigma2 <- rexp(n, rate = 12) %>% 
   tibble() %>% 
   mutate(group = 'sigma%~% exp(10)') %>% 
   ggplot(aes(x=.)) + 
@@ -77,7 +77,7 @@ sigma2 <- rexp(n, rate = 10) %>%
 ###     varying slopes matrix         ###
 #########################################
 
-lkjcorr <- rlkjcorr_marginal(n, K = 2, eta = 5) %>% tibble(x = .) %>% 
+lkjcorr <- rlkjcorr_marginal(n, K = 2, eta = 10) %>% tibble(x = .) %>% 
   mutate(group = 'R%~% LKJcorr(5)') %>% 
   ggplot(aes(x = x, fill = group)) + 
   geom_density() +
