@@ -16,7 +16,7 @@ cl_max <-
       family=Gamma("log"),
       formula=Duration ~ 1 + utt_initial + word_initial + 
         (1 + utt_initial + word_initial | Language / (sound_class + Speaker)) +
-         z_num_phones + z_word_freq = z_speech_rate,
+         z_num_phones + z_word_freq + z_speech_rate,
       prior=c(prior(normal(4.5, 0.1), class=Intercept),
               prior(normal(6, 0.5), class=shape),
               prior(normal(0, 0.3), class=b),
