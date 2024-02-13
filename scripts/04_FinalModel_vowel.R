@@ -4,8 +4,7 @@ library(brms)
 library(cmdstanr)
 
 data <- read_tsv('vowels.tsv') %>% 
-  mutate(sound_class = paste(voicing, sound_class),
-         word_initial = as.factor(word_initial),
+  mutate(word_initial = as.factor(word_initial),
          utt_initial = as.factor(utt_initial),
 		 utt_final = as.factor(utt_final))
 
@@ -17,7 +16,7 @@ cl_max <-
   brm(data=data,
       family=Gamma("log"),
       formula=Duration ~ 1 + utt_initial + word_initial + utt_final +
-        (1 + utt_initial + word_initial + utt_final| Language / (sound_class + Speaker)) +
+        (1 + utt_initial + word_initial + utt_final| (Language / Speaker)) +
         z_num_phones + z_word_freq + z_speech_rate,
       prior=c(prior(normal(4.6, 0.1), class=Intercept),
               prior(normal(5, 0.5), class=shape),

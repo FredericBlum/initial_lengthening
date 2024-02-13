@@ -9,7 +9,7 @@ data <- read_tsv('data.tsv') %>%
          utt_initial = as.factor(utt_initial))
 
 # If necessary, set path to specific cmdstan installation
-set_cmdstan_path(path="")
+# set_cmdstan_path(path="")
 set_cmdstan_path(path="/data/tools/stan/cmdstan-2.32.2/")
 cl_max <- 
   brm(data=data,
