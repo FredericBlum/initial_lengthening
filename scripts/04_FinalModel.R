@@ -39,7 +39,7 @@ cl_max <-
               prior(lkj(5), class=cor),
               prior(exponential(2), class=sdgp)
       ),
-      iter=1000, warmup=500, chains=4, cores=4,
+      iter=100, warmup=50, chains=4, cores=4,
       control=list(adapt_delta=0.80, max_treedepth=10),
       seed=1,
       silent=0,

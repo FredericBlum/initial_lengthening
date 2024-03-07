@@ -43,6 +43,6 @@ cl_max <-
       control=list(adapt_delta=0.80, max_treedepth=10),
       seed=1,
       silent=0,
-      file="models/cl_bias",
+      file="models/cl_bias_tiny",
       backend="cmdstanr"
   )
