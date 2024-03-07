@@ -1,0 +1,52 @@
+ID,Name,Macroarea,Latitude,Longitude,Glottocode,ISO639P3code,Source,family_id,parent_id,name_language,name_macro_family,name_micro_family,phylo
+anal1239,Anal,Eurasia,24.05,94.28,anal1239,NA,doreco-anal1239,sino1245,oldk1252,Anal,Sino-Tibetan,Northwestern Kuki-Chin,Northwestern Kuki-Chin
+apah1238,Yali (Apahapsili),Papunesia,-4.08,139.46,apah1238,NA,doreco-apah1238,nucl1709,pass1247,Apahapsili,Nuclear Trans New Guinea,Pass Valley Yali,Pass Valley Yali
+arap1274,Arapaho,North America,43.39,-108.81,arap1274,NA,doreco-arap1274,algi1248,arap1280,Arapaho,Algic,Arapaho-Gros Ventre-Besawunena,Arapaho-Gros Ventre-Besawunena
+bain1259,Baïnounk Gubëeher,Africa,12.31,-16.06,bain1259,NA,doreco-bain1259,atla1278,bain1264,Bainounk-Gujaher,Atlantic-Congo,Bainounk,Bainounk
+beja1238,Beja,Africa,17.24,36.67,beja1238,NA,doreco-beja1238,afro1255,cush1243,Beja,Afro-Asiatic,Cushitic,Cushitic
+bora1263,Bora,South America,-2,-72.26,bora1263,NA,doreco-bora1263,bora1262,bora1262,Bora,Boran,Boran,Boran
+cabe1245,Cabécar,North America,9.67,-83.41,cabe1245,NA,doreco-cabe1245,chib1249,vice1244,Cabécar,Chibchan,Viceitic,Viceitic
+cash1254,Cashinahua,South America,-9.72,-71.17,cash1254,NA,doreco-cash1254,pano1259,head1239,Cashinahua,Pano-Tacanan,Headwaters Pano,Headwaters Pano
+dolg1241,Dolgan,Eurasia,71.11,94.29,dolg1241,NA,doreco-dolg1241,turk1311,nort2688,Dolgan,Turkic,North Siberian Turkic,North Siberian Turkic
+even1259,Evenki,Eurasia,61.97,94.69,even1259,NA,doreco-even1259,tung1282,west2427,Evenki,Tungusic,Northwestern Tungusic,Northwestern Tungusic
+goem1240,Goemai,Africa,8.74,9.72,goem1240,NA,doreco-goem1240,afro1255,anga1311,Goemai,Afro-Asiatic,Goemaic,Goemaic
+goro1270,Gorwaa,Africa,-4.24,35.8,goro1270,NA,doreco-goro1270,afro1255,iraq1240,Gorowa,Afro-Asiatic,Iraqwoid,Iraqwoid
+hoch1243,Hoocąk,North America,43.5,-88.5,hoch1243,NA,doreco-hoch1243,siou1252,winn1245,Ho-Chunk,Siouan,Winnebago-Chiwere,Winnebago-Chiwere
+jeha1242,Jahai,Eurasia,5.64,101.54,jeha1242,NA,doreco-jeha1242,aust1305,menr1235,Jehai,Austroasiatic,Menraq-Batek,Menraq-Batek
+jeju1234,Jejuan,Eurasia,33.38,126.56,jeju1234,NA,doreco-jeju1234,kore1284,kore1284,Jejueo,Koreanic,Koreanic,Koreanic
+kaka1265,Kakabe,Africa,10.6,-11.44,kaka1265,NA,doreco-kaka1265,mand1469,nucl1445,Kakabe,Mande,Nuclear Mokole,Nuclear Mokole
+kama1351,Kamas,Eurasia,55.07,94.83,kama1351,NA,doreco-kama1351,ural1272,kama1376,Kamas-Koibal,Uralic,Kamas-Selkup,Kamas-Selkup
+kark1256,Tabaq (Karko),Africa,12.05,29.21,kark1256,NA,doreco-kark1256,nubi1251,west2807,Karko,Nubian,Western Kordofan Nubian,Western Kordofan Nubian
+komn1238,Komnzo,Papunesia,-8.65,141.52,komn1238,NA,doreco-komn1238,more1255,wara1294,Kómnjo,Yam,Anta-Komnzo-Wára-Wérè-Kémä,Anta-Komnzo-Wára-Wérè-Kémä
+ligh1234,Light Warlpiri,Australia,-18.32,130.63,ligh1234,NA,doreco-ligh1234,mixe1287,warl1257,Light Warlpiri,Mixed Language,Warlpiri-Kriol,Warlpiri-Kriol
+lowe1385,Lower Sorbian,Eurasia,51.66,13.94,lowe1385,NA,doreco-lowe1385,indo1319,sorb1249,Lower Sorbian,Indo-European,Sorbian,Sorbian
+movi1243,Movima,South America,-13.81,-65.63,movi1243,NA,doreco-movi1243,NA,NA,Movima,Movima,Movima,Movima
+ngal1292,Dalabon,Australia,-13.98,133.94,ngal1292,NA,doreco-ngal1292,gunw1250,cent2231,Ngalkbun,Gunwinyguan,Central Gunwinyguan,Central Gunwinyguan
+nisv1234,Nisvai,Papunesia,-16.41,167.79,nisv1234,NA,doreco-nisv1234,aust1307,nasv1235,Nisvai,Austronesian,Nasvang-Nisvai,Nasvang-Nisvai
+nngg1234,Nǁng,Africa,-29.71,19.08,nngg1234,NA,doreco-nngg1234,tuuu1241,nuuu1241,N||ng,Tuu,N||ng-Danster !Ui,N||ng-Danster !Ui
+nort2641,Northern Kurdish (Kurmanji),Eurasia,37,43,nort2641,NA,doreco-nort2641,indo1319,kurd1259,Northern Kurdish,Indo-European,Kurdish,Kurdish
+nort2875,Northern Alta,Papunesia,15.69,121.45,nort2875,NA,doreco-nort2875,aust1307,meso1254,Northern Alta,Austronesian,Meso-Cordilleran,Meso-Cordilleran
+orko1234,Fanbyak,Papunesia,-16.21,168.21,orko1234,NA,doreco-orko1234,aust1307,port1292,Orkon-Fanbak,Austronesian,Orkon-Port Vato-Dakaka,Orkon-Port Vato-Dakaka
+pnar1238,Pnar,Eurasia,24.82,92.26,pnar1238,NA,doreco-pnar1238,aust1305,khas1275,Pnar,Austroasiatic,Khasi-Pnar,Khasi-Pnar
+port1286,Daakie,Papunesia,-16.31,168.05,port1286,NA,doreco-port1286,aust1307,port1293,Daakie,Austronesian,Port Vato-Dakaka,Port Vato-Dakaka
+resi1247,Resígaro,South America,-2.48,-71.36,resi1247,NA,doreco-resi1247,araw1281,yucu1252,Resígaro,Arawakan,Caqueta,Caqueta
+ruul1235,Ruuli,Africa,1.42,32.42,ruul1235,NA,doreco-ruul1235,atla1278,nort3228,Ruuli,Atlantic-Congo,North Rutara,North Rutara
+sadu1234,Sadu,Eurasia,24.3,102,sadu1234,NA,doreco-sadu1234,sino1245,kazh1234,Sadu,Sino-Tibetan,Kazhouish,Kazhouish
+sanz1248,Sanzhi Dargwa,Eurasia,41.98,47.57,sanz1248,NA,doreco-sanz1248,nakh1245,sanz1247,Sanzhi,Nakh-Daghestanian,Sanzhi-Icari,Sanzhi-Icari
+savo1255,Savosavo,Papunesia,-9.13,159.81,savo1255,NA,doreco-savo1255,NA,NA,Savosavo,Savosavo,Savosavo,Savosavo
+sout2856,Nafsan (South Efate),Papunesia,-17.7,168.38,sout2856,NA,doreco-sout2856,aust1307,sout3196,South Efate,Austronesian,South Efatic,South Efatic
+sout3282,English (Southern England),Eurasia,53,-1,sout3282,NA,doreco-sout3282,indo1319,sout3281,Southern English,Indo-European,South-Central English,South-Central English
+stan1290,French (Swiss),Eurasia,48,2,stan1290,NA,doreco-stan1290,indo1319,glob1239,French,Indo-European,Global French,Global French
+sumi1235,Sümi,Eurasia,26,94.42,sumi1235,NA,doreco-sumi1235,sino1245,reng1253,Sumi Naga,Sino-Tibetan,Rengma-Simi,Rengma-Simi
+svan1243,Svan,Eurasia,42.91,42.59,svan1243,NA,doreco-svan1243,kart1248,kart1248,Svan,Kartvelian,Kartvelian,Kartvelian
+taba1259,Tabasaran,Eurasia,42.02,47.84,taba1259,NA,doreco-taba1259,nakh1245,east2367,Tabasaran,Nakh-Daghestanian,Tabasaran-Aghul-Lezgi,Tabasaran-Aghul-Lezgi
+teop1238,Teop,Papunesia,-5.67,154.97,teop1238,NA,doreco-teop1238,aust1307,tinp1238,Teop,Austronesian,Tinputzic,Tinputzic
+texi1237,Texistepec Popoluca,North America,17.89,-94.81,texi1237,NA,doreco-texi1237,mixe1284,gulf1238,Texistepec Popoluca,Mixe-Zoque,Gulf Zoque,Gulf Zoque
+trin1278,Mojeño Trinitario,South America,-15.33,-65.41,trin1278,NA,doreco-trin1278,araw1281,trin1274,Trinitario,Arawakan,Trinitario-Javeriano-Loretano,Trinitario-Javeriano-Loretano
+tsim1256,Asimjeeg Datooga,Africa,-3.42,35.43,tsim1256,NA,doreco-tsim1256,nilo1247,isim1234,Isimjeega,Nilotic,Isimjeega-Rootigaanga,Isimjeega-Rootigaanga
+urum1249,Urum,Eurasia,42.04,43.99,urum1249,NA,doreco-urum1249,turk1311,crim1256,Urum,Turkic,Crimean Tatar-Urum,Crimean Tatar-Urum
+vera1241,Vera'a,Papunesia,-13.89,167.43,vera1241,NA,doreco-vera1241,aust1307,leme1240,Vera'a,Austronesian,Lemerig-Veraa,Lemerig-Veraa
+warl1254,Warlpiri,Australia,-20.1,131.05,warl1254,NA,doreco-warl1254,pama1250,ngar1289,Warlpiri,Pama-Nyungan,Yapa,Yapa
+yong1270,Yongning Na,Eurasia,27.8,100.9,yong1270,NA,doreco-yong1270,sino1245,nais1236,Narua,Sino-Tibetan,Naish,Naish
+yuca1254,Yucatec Maya,North America,18.78,-88.96,yuca1254,NA,doreco-yuca1254,maya1287,yuca1253,Yucatec Maya,Mayan,Yucatec-Lacandon,Yucatec-Lacandon
+yura1255,Yurakaré,South America,-16.75,-65.12,yura1255,NA,doreco-yura1255,NA,NA,Yuracaré,Yuracaré,Yuracaré,Yuracaré

@@ -12,7 +12,7 @@ library(xtable)
 
 
 ###################################################################
-model <- readRDS(file="models/cl_final.rds")
+model <- readRDS(file="models/cl_gamma.rds")
 
 
 # Change path to the 'doreco/cldf/languages.csv' file if necessary

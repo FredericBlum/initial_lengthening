@@ -37,7 +37,7 @@ The last step created a SQLite database out of the CLDF data, to quickly access 
 ```bash
 cldf createdb cldf/Generic-metadata.json doreco.sqlite
 sqlite3 -echo doreco.sqlite < etc/views.sql
-cd ../  # On Windows, you might have to use `cd ..\`
+cd ../  # On Windows, you might have to use the full path to the preceding folder
 ```
 
 You can now run the query we provide to extract all the data needed for the analysis. Please note that we make use of the `stdev` function which is only available if you run the query through `doreco.query`, and not through other standard interfaces.
