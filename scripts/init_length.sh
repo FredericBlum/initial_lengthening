@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --cpus-per-task 4
-#SBATCH --mem-per-cpu 12G
+#SBATCH --mem-per-cpu 20G
 #SBATCH -J init_length
 #SBATCH --output=%x.%j.out
 #SBATCH --error=%x.%j.err

@@ -14,20 +14,17 @@ library(xtable)
 ###################################################################
 model <- readRDS(file="models/cl_gamma.rds")
 
+languages <- read_csv('languages.csv')
 
-# Change path to the 'doreco/cldf/languages.csv' file if necessary
-languages <- read_csv('../doreco/cldf/languages.csv') %>% 
-  mutate(Language=Name, Glottocide=ID) %>% select(Glottocode, Language) 
-
-rope_high=0.01
-rope_low=-0.01
+rope_high = 0.05
+rope_low = -0.05
 
 #########################################
 ###     Parameters                    ###
 #########################################
-hpdi_80 <- posterior_interval(model, prob=0.80) %>% 
+hpdi_89 <- posterior_interval(model, prob=0.89) %>% 
   data.frame() %>% as_tibble(rownames="Parameter") %>% 
-  rename(hpdi_80_low=X10., hpdi_80_high=X90.)
+  rename(hpdi_89_low=X5.5., hpdi_89_high=X94.5.)
 
 hpdi_95 <- posterior_interval(model, prob=0.95) %>% 
   data.frame() %>% as_tibble(rownames="Parameter") %>% 
@@ -35,7 +32,7 @@ hpdi_95 <- posterior_interval(model, prob=0.95) %>%
 
 para_vals <- posterior_summary(model) %>% 
   data.frame() %>% as_tibble(rownames="Parameter") %>% 
-  left_join(hpdi_80) %>% left_join(hpdi_95) %>% 
+  left_join(hpdi_89) %>% left_join(hpdi_95) %>% 
   mutate(Parameter=str_replace(Parameter, "b_([a-z]*)_initial1", "\\1-initial")) 
 
 fix_eff <- para_vals %>% 
@@ -51,13 +48,13 @@ lang_params <- para_vals %>%
   transmute(
     Language=Language, Parameter=Parameter,
     Estimate=Estimate.x + Estimate.y,
-     hpdi_80_high=hpdi_80_high.x + hpdi_80_high.y,
-     hpdi_80_low=hpdi_80_low.x + hpdi_80_low.y,
+     hpdi_89_high=hpdi_89_high.x + hpdi_89_high.y,
+     hpdi_89_low=hpdi_89_low.x + hpdi_89_low.y,
      hpdi_high=hpdi_high.x + hpdi_high.y,
      hpdi_low=hpdi_low.x + hpdi_low.y
    ) %>% 
-  mutate(outside=ifelse(hpdi_80_high < rope_low, TRUE, 
-                          ifelse(hpdi_80_low > rope_high, TRUE, FALSE)),
+  mutate(outside=ifelse(hpdi_89_high < rope_low, TRUE, 
+                          ifelse(hpdi_89_low > rope_high, TRUE, FALSE)),
          outside_99=ifelse(hpdi_high < rope_low, "yes", 
                              ifelse(hpdi_low > rope_high, "yes", "no")),
          Language=str_replace(Language, "\\.", " ")) %>% 
@@ -91,8 +88,8 @@ print(xtable(fixed_effects), include.rownames=FALSE)
 # This table is not currently used in the paper
 corr <- para_vals %>% filter(str_detect(para_vals$Parameter, "cor")) %>% 
   mutate(Parameter=str_replace(Parameter, "Speaker", "Speaker"),
-         "80% HPDI"=paste(format(round(hpdi_80_low, 2), nsmall=2), "to", 
-                            format(round(hpdi_80_high, 2), nsmall=2))) %>% 
+         "80% HPDI"=paste(format(round(hpdi_89_low, 2), nsmall=2), "to", 
+                            format(round(hpdi_89_high, 2), nsmall=2))) %>% 
   select(Parameter, "80% HPDI") %>% 
   separate(sep="__", col=Parameter, into=c("Level", "Parameter", "Parameter2")) %>% 
   mutate(Level=str_replace(Level, "cor_", ""),
@@ -108,7 +105,7 @@ np_max <- nuts_params(model)
 posterior_max <- as.array(model)
 
 overall_areas <- mcmc_areas(model, regex_pars=c("^b_(utt|word)_initial1$", "z_"),
-             prob=0.80, prob_outer=0.997, point_est="mean") +
+             prob=0.89, prob_outer=0.997, point_est="mean") +
   geom_vline(xintercept=0, color="red", alpha=0.5, linewidth=1)+
   annotate("rect", xmin=rope_low, xmax=rope_high, ymin=0, ymax=Inf, alpha=.3) +
   scale_y_discrete(labels=c('Utterance-initial','Word-initial','Speech rate', 
@@ -127,7 +124,7 @@ word_init <- lang_params %>%
   ggplot(aes(x=Estimate, y=reorder(Language, Estimate))) +
   geom_errorbar(aes(xmin=hpdi_low, xmax=hpdi_high)) + 
   geom_crossbar(aes(
-    xmin=hpdi_80_low, xmax=hpdi_80_high, fill=Parameter,
+    xmin=hpdi_89_low, xmax=hpdi_89_high, fill=Parameter,
     alpha=ifelse(outside == 1, 0.8, 0.5)), fatten=2, linewidth=0.5, width=0.8) +  
   geom_vline(xintercept=0, color="red") +
   annotate("rect", xmin=rope_low, xmax=rope_high, ymin=0, ymax=Inf, alpha=.2) +
@@ -145,7 +142,7 @@ utt_init <- lang_params %>%
   ggplot(aes(x=Estimate, y=reorder(Language, Estimate))) +
   geom_errorbar(aes(xmin=hpdi_low, xmax=hpdi_high)) + 
   geom_crossbar(aes(
-    xmin=hpdi_80_low, xmax=hpdi_80_high, fill=Parameter,
+    xmin=hpdi_89_low, xmax=hpdi_89_high, fill=Parameter,
     alpha=ifelse(outside == 1, 0.8, 0.5)), fatten=2, linewidth=0.5, width=0.8) +  
   geom_vline(xintercept=0, color="red") +
   annotate("rect", xmin=rope_low, xmax=rope_high, ymin=0, ymax=Inf, alpha=.2) +
@@ -160,7 +157,7 @@ ggsave("images/viz_uttInit.png", utt_init,
 combined <- lang_params %>% 
   mutate(Parameter=str_replace(Parameter, "utt-", "utterance-")) %>% 
   ggplot(aes(x=Parameter, y=Estimate)) +
-  geom_crossbar(aes(ymin=hpdi_80_low, ymax=hpdi_80_high, fill=Parameter,
+  geom_crossbar(aes(ymin=hpdi_89_low, ymax=hpdi_89_high, fill=Parameter,
                     alpha=ifelse(outside==TRUE, 1, 0.1)), 
                 linewidth=0.5, width=0.7, fatten=0) + 
   geom_errorbar(aes(ymin=hpdi_low, ymax=hpdi_high, width=0.5)) +
@@ -193,20 +190,20 @@ sc_params <- para_vals %>%
   transmute(
     Language=Language, Parameter=Parameter, SoundClass=SoundClass,
     Estimate=Estimate.x + Estimate.y,
-    hpdi_80_high=hpdi_80_high.x + hpdi_80_high.y,
-    hpdi_80_low=hpdi_80_low.x + hpdi_80_low.y,
+    hpdi_89_high=hpdi_89_high.x + hpdi_89_high.y,
+    hpdi_89_low=hpdi_89_low.x + hpdi_89_low.y,
     hpdi_high=hpdi_high.x + hpdi_high.y,
     hpdi_low=hpdi_low.x + hpdi_low.y
   ) %>%
-  mutate(outside=ifelse(hpdi_80_high < rope_low, TRUE, 
-                        ifelse(hpdi_80_low > rope_high, TRUE, FALSE)),
+  mutate(outside=ifelse(hpdi_89_high < rope_low, TRUE, 
+                        ifelse(hpdi_89_low > rope_high, TRUE, FALSE)),
          outside_99=ifelse(hpdi_high < rope_low, "yes", 
                            ifelse(hpdi_low > rope_high, "yes", "no")))
 
 sc_per_lang_word <- sc_params %>% 
   filter(Parameter=="word-initial") %>% 
   ggplot(aes(x=SoundClass, y=Estimate)) +
-  geom_crossbar(aes(ymin=hpdi_80_low, ymax=hpdi_80_high, fill=SoundClass,
+  geom_crossbar(aes(ymin=hpdi_89_low, ymax=hpdi_89_high, fill=SoundClass,
                     alpha=ifelse(outside==TRUE, 1, 0.1)), 
                 linewidth=0.5, width=0.7, fatten=0) + 
   geom_errorbar(aes(ymin=hpdi_low, ymax=hpdi_high, width=0.5)) +
@@ -225,7 +222,7 @@ ggsave('images/sc_per_lang_word.png', sc_per_lang_word, scale=1,
 sc_per_lang_utt <- sc_params %>% 
   filter(Parameter=="utt-initial") %>% 
   ggplot(aes(x=SoundClass, y=Estimate)) +
-  geom_crossbar(aes(ymin=hpdi_80_low, ymax=hpdi_80_high, fill=SoundClass,
+  geom_crossbar(aes(ymin=hpdi_89_low, ymax=hpdi_89_high, fill=SoundClass,
                     alpha=ifelse(outside==TRUE, 1, 0.1)), 
                 linewidth=0.5, width=0.7, fatten=0) + 
   geom_errorbar(aes(ymin=hpdi_low, ymax=hpdi_high, width=0.5)) +
@@ -245,7 +242,7 @@ sc_per_param_utt <- sc_params %>%
   filter(Parameter=="utt-initial") %>% 
   ggplot(aes(x=Language, y=Estimate)) +
   geom_errorbar(aes(ymin=hpdi_low, ymax=hpdi_high, width=0.5)) +
-  geom_crossbar(aes(ymin=hpdi_80_low, ymax=hpdi_80_high, fill=SoundClass,
+  geom_crossbar(aes(ymin=hpdi_89_low, ymax=hpdi_89_high, fill=SoundClass,
                     alpha=ifelse(outside==TRUE, 1, 0.7)),
                 linewidth=0.5, width=0.7, fatten=0) + 
   geom_hline(yintercept=0, color="red", alpha=0.7, linewidth=1)+
@@ -265,7 +262,7 @@ sc_per_param_word <- sc_params %>%
   filter(Parameter=="word-initial") %>% 
   ggplot(aes(x=Language, y=Estimate)) +
   geom_errorbar(aes(ymin=hpdi_low, ymax=hpdi_high, width=0.5)) +
-  geom_crossbar(aes(ymin=hpdi_80_low, ymax=hpdi_80_high, fill=SoundClass,
+  geom_crossbar(aes(ymin=hpdi_89_low, ymax=hpdi_89_high, fill=SoundClass,
                     alpha=ifelse(outside==TRUE, 1, 0.7)),
                 linewidth=0.5, width=0.7, fatten=0) + 
   geom_hline(yintercept=0, color="red", alpha=0.7, linewidth=1)+
@@ -298,12 +295,12 @@ speaker_variation <- para_vals %>%
   left_join(lang_params, by=c("Language", "Parameter")) %>% 
   transmute(Language=Language, Speaker=Speaker, Parameter=Parameter,
          Estimate=Estimate.x + Estimate.y,
-         hpdi_80_low=(hpdi_80_low.x + Estimate.y),
-         hpdi_80_high=(hpdi_80_high.x + Estimate.y),
+         hpdi_89_low=(hpdi_89_low.x + Estimate.y),
+         hpdi_89_high=(hpdi_89_high.x + Estimate.y),
          hpdi_low=(hpdi_low.x + Estimate.y),
          hpdi_high=(hpdi_high.x + Estimate.y)) %>% 
-  mutate(outside=ifelse(hpdi_80_high < rope_low, 1, 
-                          ifelse(hpdi_80_low > rope_high, 1, 0)))
+  mutate(outside=ifelse(hpdi_89_high < rope_low, 1, 
+                          ifelse(hpdi_89_low > rope_high, 1, 0)))
 
 #########################################
 ###     Speaker plots                 ###
@@ -311,7 +308,7 @@ speaker_variation <- para_vals %>%
 speaker_plot_word <- speaker_variation %>% 
   filter(Parameter=='word-initial') %>% 
   ggplot(aes(x=Speaker, y=Estimate)) +
-  geom_crossbar(aes(ymin=hpdi_80_low, ymax=hpdi_80_high, fill=Language,
+  geom_crossbar(aes(ymin=hpdi_89_low, ymax=hpdi_89_high, fill=Language,
                     alpha=ifelse(outside == 1, 1, 0.1)), 
                 linewidth=0.5, width=0.5, fatten=0) + 
   geom_errorbar(aes(ymin=hpdi_low, ymax=hpdi_high, width=0.3)) +
@@ -329,7 +326,7 @@ ggsave('images/speaker_word.png', speaker_plot_word, scale=0.8,
 speaker_plot_utt <- speaker_variation %>% 
   filter(Parameter=='utt-initial') %>% 
   ggplot(aes(x=Speaker, y=Estimate)) +
-  geom_crossbar(aes(ymin=hpdi_80_low, ymax=hpdi_80_high, fill=Language,
+  geom_crossbar(aes(ymin=hpdi_89_low, ymax=hpdi_89_high, fill=Language,
                     alpha=ifelse(outside == 1, 1, 0.1)), 
                 linewidth=0.5, width=0.5, fatten=0) + 
   geom_errorbar(aes(ymin=hpdi_low, ymax=hpdi_high, width=0.3)) +

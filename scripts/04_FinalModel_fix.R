@@ -28,7 +28,6 @@ cl_max <-
       data2 = list(phylo=phylo),
       family=Gamma("log"),
       formula=Duration ~ 1 + utt_initial + word_initial + 
-        gp(Longitude, Latitude, by=Macroarea, gr=TRUE) +
         (1 + utt_initial + word_initial | Language / Speaker) +
         (1 | gr(phylo, cov=phylo)) +
         CLTS + z_num_phones + z_word_freq + z_speech_rate,
@@ -36,13 +35,12 @@ cl_max <-
               prior(normal(6, 0.5), class=shape),
               prior(normal(0, 0.3), class=b),
               prior(exponential(12), class=sd),
-              prior(lkj(5), class=cor),
-              prior(exponential(2), class=sdgp)
+              prior(lkj(5), class=cor)
       ),
-      iter=2000, warmup=1000, chains=4, cores=4,
-      control=list(adapt_delta=0.80, max_treedepth=10),
+      iter=1000, warmup=500, chains=4, cores=4,
+      control=list(adapt_delta=0.85, max_treedepth=12),
       seed=1,
       silent=0,
-      file="models/cl_bias_big",
+      file="models/cl_bias_fix",
       backend="cmdstanr"
   )

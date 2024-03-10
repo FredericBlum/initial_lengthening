@@ -125,7 +125,8 @@ df_aff <- read_tsv('data.tsv')
 
 lfd <- filter(lang_fam_gloto_data, id %in% langs$ID)
 langs <- langs %>% left_join(lfd, by=join_by(ID==id)) %>%
-  mutate(phylo=name_micro_family)
+  mutate(phylo=name_micro_family,
+         Language=Name) 
 
 aff_phylo <- build_phylos(lfd, name_micro_family, .micro_family=TRUE)
 
