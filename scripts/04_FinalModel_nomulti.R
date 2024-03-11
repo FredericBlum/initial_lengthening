@@ -25,7 +25,6 @@ set_cmdstan_path(path="/data/tools/stan/cmdstan-2.32.2/")
 
 model <- 
   brm(data=data,
-      data2 = list(phylo=phylo),
       family=Gamma("log"),
       formula=Duration ~ 1 + utt_initial + word_initial + 
         (1 + utt_initial + word_initial | (Language:Speaker)) +
@@ -38,7 +37,7 @@ model <-
               prior(lkj(5), class=cor)
       ),
       iter=1000, warmup=500, chains=4, cores=4,
-      control=list(adapt_delta=0.85, max_treedepth=12),
+      control=list(adapt_delta=0.85, max_treedepth=10),
       seed=1,
       silent=0,
       file="models/cl_bias_nomulti",
