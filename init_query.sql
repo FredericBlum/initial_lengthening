@@ -25,8 +25,8 @@ SELECT
 	ROUND(((utt.log_speech_rate - sd_speech_rate.avg_speech_rate) / sd_speech_rate.speech_rate), 3) AS z_speech_rate,
 	-- normalized frequency of the word form:
 	ROUND(((forms.freq - sd_word_freq.avg_word_freq) / sd_word_freq.word_freq), 3) AS z_word_freq,
-	cluster.in_cluster AS InCluster,
-	cluster.initial AS ClusterInitial
+	coalesce(cluster.in_cluster, false) AS InCluster,
+	coalesce(cluster.initial, false) AS ClusterInitial
 FROM
     "phones.csv" AS phone,
     "words.csv" AS word, -- word-level metadata joined ON phone.wd_id = word.cldf_id
