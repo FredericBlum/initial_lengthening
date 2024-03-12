@@ -117,7 +117,7 @@ LEFT JOIN
                 lead(instr(s.cldf_cltsreference, 'consonant') > 0) over () as next_is_consonant,
                 lead(p.wd_id) over () as next_wd_id
             from `phones.csv` as p
-            left outer join `parametertable` as s on p.cldf_name = s.cldf_name) as pp
+            left outer join `parametertable` as s on p.cldf_parameterReference = s.cldf_id) as pp
     ) AS cluster
 ON
     phone.cldf_id = cluster.cldf_id
