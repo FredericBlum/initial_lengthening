@@ -12,12 +12,13 @@ library(xtable)
 
 
 ###################################################################
-model <- readRDS(file="models/cl_gamma.rds")
+model <- readRDS(file="models/cl_bias_nophyl.rds")
 
 languages <- read_csv('languages.csv')
 
-rope_high = 0.05
-rope_low = -0.05
+rope_high = 0.01
+rope_low = -0.01
+
 
 #########################################
 ###     Parameters                    ###
@@ -25,6 +26,8 @@ rope_low = -0.05
 hpdi_89 <- posterior_interval(model, prob=0.89) %>% 
   data.frame() %>% as_tibble(rownames="Parameter") %>% 
   rename(hpdi_89_low=X5.5., hpdi_89_high=X94.5.)
+
+hdi(model, prob=0.89, side='upper')
 
 hpdi_95 <- posterior_interval(model, prob=0.95) %>% 
   data.frame() %>% as_tibble(rownames="Parameter") %>% 
@@ -88,14 +91,14 @@ print(xtable(fixed_effects), include.rownames=FALSE)
 # This table is not currently used in the paper
 corr <- para_vals %>% filter(str_detect(para_vals$Parameter, "cor")) %>% 
   mutate(Parameter=str_replace(Parameter, "Speaker", "Speaker"),
-         "80% HPDI"=paste(format(round(hpdi_89_low, 2), nsmall=2), "to", 
+         "89% HPDI"=paste(format(round(hpdi_89_low, 2), nsmall=2), "to", 
                             format(round(hpdi_89_high, 2), nsmall=2))) %>% 
-  select(Parameter, "80% HPDI") %>% 
+  select(Parameter, "89% HPDI") %>% 
   separate(sep="__", col=Parameter, into=c("Level", "Parameter", "Parameter2")) %>% 
   mutate(Level=str_replace(Level, "cor_", ""),
          Parameter=str_replace(Parameter, "Initial", ""),
          Parameter2=str_replace(Parameter2, "Initial", "")) %>% 
-  pivot_wider(names_from="Parameter2", values_from="80% HPDI") 
+  pivot_wider(names_from="Parameter2", values_from="89% HPDI") 
 print(xtable(corr), include.rownames=FALSE)
 
 #########################################
@@ -129,7 +132,7 @@ word_init <- lang_params %>%
   geom_vline(xintercept=0, color="red") +
   annotate("rect", xmin=rope_low, xmax=rope_high, ymin=0, ymax=Inf, alpha=.2) +
   scale_y_discrete(name=NULL) +
-  scale_fill_viridis(discrete=T) +
+  scale_fill_viridis(discrete=T, begin=0.75, end=0.75) +
   scale_x_continuous(name=NULL) +
   theme(legend.position="none")
 
@@ -143,11 +146,12 @@ utt_init <- lang_params %>%
   geom_errorbar(aes(xmin=hpdi_low, xmax=hpdi_high)) + 
   geom_crossbar(aes(
     xmin=hpdi_89_low, xmax=hpdi_89_high, fill=Parameter,
-    alpha=ifelse(outside == 1, 0.8, 0.5)), fatten=2, linewidth=0.5, width=0.8) +  
+    alpha=ifelse(outside == 1, 0.8, 0.5)), 
+    fatten=2, linewidth=0.5, width=0.8) +  
   geom_vline(xintercept=0, color="red") +
   annotate("rect", xmin=rope_low, xmax=rope_high, ymin=0, ymax=Inf, alpha=.2) +
   scale_y_discrete(name=NULL) +
-  scale_fill_viridis(discrete=T, begin=0.525, end=0.525) +
+  scale_fill_viridis(discrete=T, begin=0.35, end=0.35) +
   scale_x_continuous(name=NULL) +
   theme(legend.position="none")
 
@@ -163,7 +167,7 @@ combined <- lang_params %>%
   geom_errorbar(aes(ymin=hpdi_low, ymax=hpdi_high, width=0.5)) +
   annotate("rect", ymin=rope_low, ymax=rope_high, xmin=0, xmax=Inf,
            alpha=.8) +
-  scale_fill_viridis(discrete=T, begin=0, end=0.7) +
+  scale_fill_viridis(discrete=T, begin=0.35, end=0.75) +
   facet_wrap(~Language, ncol=6) +
   scale_x_discrete(name=NULL, labels=NULL) +
   scale_y_continuous(breaks=c(0.3, 0, -0.3)) +

@@ -16,7 +16,7 @@ data <- read_tsv('data.tsv') %>%
            )))
 
 lang_vec <- unique(data$Language)
-languages <- read_csv('../doreco/cldf/languages.csv')
+languages <- read_csv('languages.csv')
 
 # Speaker Table has 396 entries, but only 393 contribute data
 speakers <- read_csv('../doreco/cldf/speakers.csv')
@@ -74,14 +74,16 @@ map_doreco <- ggplot() +
   geom_polygon(data=world,
                aes(x=long,y=lat,group=group),
                colour="#F2DDC1",linewidth=0.2, fill="#F2DDC1") + 
-  geom_point(data=languages,
-             aes(Longitude, Latitude),
-             size=3, shape=21, fill="black", alpha=0.8) +
-  geom_label_repel(box.padding=0.5, point.padding=0.5,
-                   data=languages, aes(Longitude, Latitude, label=Name), 
-                   min.segment.length=unit(0, 'lines'),
-                   size=3.5, max.overlaps=99) +
-  scale_x_continuous(name="") + scale_y_continuous(name="") 
+  geom_jitter(data=languages, height=3, width=3,
+             aes(Longitude, Latitude, fill=name_macro_family),
+             size=6, shape=21, alpha=0.8) +
+  scale_colour_viridis_d() +
+  # geom_label_repel(box.padding=0.5, point.padding=0.5,
+  #                  data=languages, aes(Longitude, Latitude, label=Name), 
+  #                  min.segment.length=unit(0, 'lines'),
+  #                  size=5, max.overlaps=99) +
+  scale_x_continuous(name="") + scale_y_continuous(name="") +
+  theme(legend.position="none")
 
 ggsave('images/map_doreco.png', map_doreco, scale=1,
        width=3000, height=2000, units="px")

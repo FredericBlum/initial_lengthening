@@ -28,7 +28,7 @@ cl_max <-
       data2 = list(phylo=phylo),
       family=Gamma("log"),
       formula=Duration ~ 1 + utt_initial + word_initial + 
-        (1 + utt_initial + word_initial | Language / Speaker) +
+        (1 + utt_initial + word_initial | Language/Speaker) +
         (1 | gr(phylo, cov=phylo)) +
 		(1 | CLTS) +
         z_num_phones + z_word_freq + z_speech_rate,
@@ -38,7 +38,7 @@ cl_max <-
               prior(exponential(12), class=sd),
               prior(lkj(5), class=cor)
       ),
-      iter=1000, warmup=500, chains=4, cores=4,
+      iter=1500, warmup=750, chains=4, cores=4,
       control=list(adapt_delta=0.85, max_treedepth=12),
       seed=1,
       silent=0,
