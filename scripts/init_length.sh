@@ -5,6 +5,6 @@
 #SBATCH --output=%x.%j.out
 #SBATCH --error=%x.%j.err
 #SBATCH --partition dlcegpu
-#SBATCH -w dlcenode03
+#SBATCH -w dlcenode04
 
-Rscript --verbose 04_FinalModel.R
+Rscript --verbose 04_FinalModel_nomulti.R
