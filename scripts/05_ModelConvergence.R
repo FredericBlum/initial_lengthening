@@ -16,7 +16,7 @@ data <- read_tsv('data.tsv') %>%
       		word_initial==1, "word", "other"
   )))
 
-model <- readRDS(file="models/cl_final.rds")
+# model <- readRDS(file="models/cl_final.rds")
 model <- readRDS(file="models/cl_gamma.rds")
 
 #########################################
@@ -27,8 +27,13 @@ np_max <- nuts_params(model)
 posterior_max <- as.array(model)
 
 # mcmc_pairs: up to 8 parameters, divergent transitions and collinearity between parameters
-pred_pairs <- mcmc_pairs(posterior_max, np=np_max, pars=c('b_Intercept', 'sigma', 'b_z_word_freq', 'b_word_initial1'), 
+pred_pairs <- mcmc_pairs(posterior_max, np=np_max,
+                         pars=c(
+                           'b_Intercept', 'b_z_word_freq', 'b_z_num_phones',
+                           'b_word_initial1', 'b_utt_initial1', 'shape'
+                           ), 
                          off_diag_args=list(size=0.75))
+
 diver_scatter <- mcmc_scatter(posterior_max, np=np_max, regex_pars=c('b_Intercept', 'sigma'))
 ggsave('images/viz_pairsPred.png', pred_pairs, scale=1.3,
        width=3000, height=2800, units="px")
@@ -41,6 +46,10 @@ ggsave('images/viz_pairsPredz.png', zipfs_pairs, scale=1.3,
 
 collinearity_pred <- as_draws_df(model) %>% 
   select(b_z_speech_rate:b_z_word_freq) %>% 
+  cor()
+
+collinearity_pred <- as_draws_df(model) %>% 
+  select(Intercept:b_word_initial1) %>% 
   cor()
 
 print(paste(
