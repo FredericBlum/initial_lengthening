@@ -27,9 +27,8 @@ model <-
   brm(data=data,
       family=Gamma("log"),
       formula=Duration ~ 1 + utt_initial + word_initial + 
-        (1 + utt_initial + word_initial | (Language/Speaker)) +
-        CLTS +
-        z_num_phones + z_word_freq,
+        (1 + utt_initial + word_initial | Language) +
+        (1 | CLTS) + (1 | speaker) + z_num_phones + z_word_freq,
       prior=c(prior(normal(4.5, 0.1), class=Intercept),
               prior(normal(6, 0.5), class=shape),
               prior(normal(0, 0.3), class=b),
