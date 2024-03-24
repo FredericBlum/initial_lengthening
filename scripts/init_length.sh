@@ -7,4 +7,4 @@
 #SBATCH --partition dlcegpu
 #SBATCH -w dlcenode03
 
-Rscript --verbose 04_FinalModel.R
+Rscript --verbose 04_FinalModel_nomulti.R
