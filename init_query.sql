@@ -25,7 +25,9 @@ SELECT
 	-- normalized speech rate of the utterance:
 	ROUND(((utt.log_speech_rate - sd_speech_rate.avg_speech_rate) / sd_speech_rate.speech_rate), 3) AS z_speech_rate,
 	-- normalized frequency of the word form:
-	ROUND(((forms.freq - sd_word_freq.avg_word_freq) / sd_word_freq.word_freq), 3) AS z_word_freq
+	ROUND(((forms.freq - sd_word_freq.avg_word_freq) / sd_word_freq.word_freq), 3) AS z_word_freq,
+	coalesce(cluster.in_cluster, false) AS InCluster,
+	coalesce(cluster.initial, false) AS ClusterInitial
 FROM
     "phones.csv" AS phone,
     "words.csv" AS word, -- word-level metadata joined ON phone.wd_id = word.cldf_id
@@ -99,6 +101,27 @@ LEFT JOIN -- summary stats on word form frequency per language
     ) AS sd_word_freq
 ON 
 	word.cldf_languageReference = sd_word_freq.cldf_languageReference
+LEFT JOIN
+    (
+        select
+            pp.cldf_id,
+            pp.wd_id,
+            pp.cldf_name,
+            not previous_is_consonant and instr(cldf_cltsreference, 'consonant') > 0 and next_is_consonant and next_wd_id = wd_id as initial,
+            ((previous_is_consonant and previous_wd_id = wd_id) or (next_is_consonant and next_wd_id = wd_id)) and instr(cldf_cltsreference, 'consonant') > 0 as in_cluster
+        from (
+            select
+                p.*,
+                s.cldf_cltsreference,
+                lag(instr(s.cldf_cltsreference, 'consonant') > 0) over () as previous_is_consonant,
+                lag(p.wd_id) over () as previous_wd_id,
+                lead(instr(s.cldf_cltsreference, 'consonant') > 0) over () as next_is_consonant,
+                lead(p.wd_id) over () as next_wd_id
+            from `phones.csv` as p
+            left outer join `parametertable` as s on p.cldf_parameterReference = s.cldf_id) as pp
+    ) AS cluster
+ON
+    phone.cldf_id = cluster.cldf_id
 WHERE
     phone.wd_id = word.cldf_id AND
     phone.cldf_parameterReference = sound.cldf_id AND
