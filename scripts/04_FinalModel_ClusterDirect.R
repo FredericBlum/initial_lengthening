@@ -14,6 +14,8 @@ data <- read_tsv('data.tsv') %>%
   ) %>% 
   left_join(langs, by = join_by(Language==ID))
 
+colnames(data)
+unique(data$ClusterInitial)
 
 # Read in phylogenetic control
 df_phylo <- read_rds("df-phylo.rds")
@@ -26,9 +28,9 @@ set_cmdstan_path(path="/data/tools/stan/cmdstan-2.32.2/")
 model <- 
   brm(data=data,
       family=Gamma("log"),
-      formula=Duration ~ 1 +
+      formula=Duration ~ 1 + utt_initial + word_initial +
         (1 + utt_initial + word_initial | Language) +
-        (1 | Speaker) + (1 | CLTS) +
+        (1 | Speaker) + (1 | CLTS) + ClusterInitial +
         z_num_phones + z_word_freq,
       prior=c(prior(normal(4.5, 0.1), class=Intercept),
               prior(normal(6, 0.5), class=shape),
@@ -40,6 +42,6 @@ model <-
       control=list(adapt_delta=0.85, max_treedepth=10),
       seed=1,
       silent=0,
-      file="models/cl_bias_direct",
+      file="models/cl_bias_clusterDirect",
       backend="cmdstanr"
   )
