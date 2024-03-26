@@ -12,7 +12,7 @@ library(xtable)
 
 
 ###################################################################
-model <- readRDS(file="models/cl_bias_nophyl.rds")
+model <- readRDS(file="models/cl_bias_direct.rds")
 
 languages <- read_csv('languages.csv')
 
@@ -27,7 +27,6 @@ hpdi_89 <- posterior_interval(model, prob=0.89) %>%
   data.frame() %>% as_tibble(rownames="Parameter") %>% 
   rename(hpdi_89_low=X5.5., hpdi_89_high=X94.5.)
 
-hdi(model, prob=0.89, side='upper')
 
 hpdi_95 <- posterior_interval(model, prob=0.95) %>% 
   data.frame() %>% as_tibble(rownames="Parameter") %>% 
@@ -40,6 +39,7 @@ para_vals <- posterior_summary(model) %>%
 
 fix_eff <- para_vals %>% 
   filter(Parameter == "word-initial"|Parameter == "utt-initial")
+r_Language[anal1239,utt_initial1]
 
 lang_params <- para_vals %>% 
   filter(grepl("^r_Language\\[.*", Parameter)) %>% 
@@ -47,7 +47,7 @@ lang_params <- para_vals %>%
          Parameter=str_replace(Parameter, "_initial1", "-initial")) %>% 
   separate(sep="__", col=Parameter, into=c("Language", "Parameter")) %>% 
   filter(Parameter != "Intercept") %>% 
-  left_join(fix_eff, by="Parameter") %>% 
+  left_join(fix_eff, by="Parameter") %>%
   transmute(
     Language=Language, Parameter=Parameter,
     Estimate=Estimate.x + Estimate.y,
@@ -55,8 +55,8 @@ lang_params <- para_vals %>%
      hpdi_89_low=hpdi_89_low.x + hpdi_89_low.y,
      hpdi_high=hpdi_high.x + hpdi_high.y,
      hpdi_low=hpdi_low.x + hpdi_low.y
-   ) %>% 
-  mutate(outside=ifelse(hpdi_89_high < rope_low, TRUE, 
+   ) %>%
+  mutate(outside=ifelse(hpdi_89_high < rope_low, TRUE,
                           ifelse(hpdi_89_low > rope_high, TRUE, FALSE)),
          outside_99=ifelse(hpdi_high < rope_low, "yes", 
                              ifelse(hpdi_low > rope_high, "yes", "no")),
@@ -136,7 +136,7 @@ word_init <- lang_params %>%
   scale_x_continuous(name=NULL) +
   theme(legend.position="none")
 
-ggsave("images/viz_wordInit.png", word_init,
+ggsave("images/viz_wordInit_direct.png", word_init,
        width=2000, height=2500, units="px")
 
 ###################################################################
