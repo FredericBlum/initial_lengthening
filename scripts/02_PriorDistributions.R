@@ -42,7 +42,7 @@ sigma1 %>% tibble() %>% ggplot(aes(x=.))+ geom_density()
 sample_ints <- tibble(x = c(rlnorm(n, 
                                   meanlog = int_vals, 
                                   sdlog = sigma1))) %>%
-  mutate(group = 'alpha%~% logn( Normal(4.4, 0.2), exp(12) )') %>% 
+  mutate(group = 'alpha%~% logn( Normal(4.5, 0.1), exp(12) )') %>% 
   ggplot(aes(fill = group)) +
   geom_density(aes(x = x)) +
   scale_x_log10(limits= c(15, 320),
@@ -53,14 +53,14 @@ sample_ints <- tibble(x = c(rlnorm(n,
   scale_fill_viridis(discrete = T, alpha = 0.7, end = 0.7) +
   theme(legend.position = "none",
         plot.title = element_text(size = 14)) +
-  labs(title = "α ~ logn(Normal(4.4, 0.2), Exp(12))")
+  labs(title = "α ~ logn(Normal(4.5, 0.1), Exp(12))")
 
 #########################################
 ###         sigma2                    ###
 #########################################
 sigma2 <- rexp(n, rate = 12) %>% 
   tibble() %>% 
-  mutate(group = 'sigma%~% exp(10)') %>% 
+  mutate(group = 'sigma%~% exp(12)') %>% 
   ggplot(aes(x=.)) + 
   geom_density(aes(fill = group)) +
   scale_y_continuous(breaks = NULL,
@@ -71,13 +71,13 @@ sigma2 <- rexp(n, rate = 12) %>%
   scale_fill_viridis(discrete = T, alpha = 0.7, end = 0.7) +
   theme(legend.position = "none",
         plot.title = element_text(size = 14)) +  
-  labs(title = "σ ~ Exp(10)")
+  labs(title = "σ ~ Exp(12)")
 
 #########################################
 ###     varying slopes matrix         ###
 #########################################
 
-lkjcorr <- rlkjcorr_marginal(n, K = 2, eta = 10) %>% tibble(x = .) %>% 
+lkjcorr <- rlkjcorr_marginal(n, K = 2, eta = 5) %>% tibble(x = .) %>% 
   mutate(group = 'R%~% LKJcorr(5)') %>% 
   ggplot(aes(x = x, fill = group)) + 
   geom_density() +
