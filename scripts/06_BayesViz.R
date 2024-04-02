@@ -12,7 +12,7 @@ library(xtable)
 
 
 ###################################################################
-model <- readRDS(file="models/cl_bias_direct.rds")
+model <- readRDS(file="models/cl_bias_clusterMulti.rds")
 
 languages <- read_csv('languages.csv')
 
@@ -35,11 +35,11 @@ hpdi_95 <- posterior_interval(model, prob=0.95) %>%
 para_vals <- posterior_summary(model) %>% 
   data.frame() %>% as_tibble(rownames="Parameter") %>% 
   left_join(hpdi_89) %>% left_join(hpdi_95) %>% 
-  mutate(Parameter=str_replace(Parameter, "b_([a-z]*)_initial1", "\\1-initial")) 
+  mutate(Parameter=str_replace(Parameter, "b_([a-z]*)_initial1", "\\1-initial"),
+         Parameter=str_replace(Parameter, "b_", "")) 
 
 fix_eff <- para_vals %>% 
-  filter(Parameter == "word-initial"|Parameter == "utt-initial")
-r_Language[anal1239,utt_initial1]
+  filter(Parameter %in% c("word-initial", "utt-initial", "ClusterInitial"))
 
 lang_params <- para_vals %>% 
   filter(grepl("^r_Language\\[.*", Parameter)) %>% 
@@ -66,6 +66,7 @@ lang_params <- para_vals %>%
 
 langWord <- lang_params %>% filter(Parameter == "word-initial")
 langUtt <- lang_params %>% filter(Parameter == "utt-initial")
+langCluster <- lang_params %>% filter(Parameter == "ClusterInitial")
 
 
 pop_level <- c("b_z_speech_rate", "b_z_num_phones", "b_z_word_freq",
@@ -136,7 +137,7 @@ word_init <- lang_params %>%
   scale_x_continuous(name=NULL) +
   theme(legend.position="none")
 
-ggsave("images/viz_wordInit_direct.png", word_init,
+ggsave("images/viz_wordInit_ClusterDirect.png", word_init,
        width=2000, height=2500, units="px")
 
 ###################################################################
@@ -177,6 +178,24 @@ combined <- lang_params %>%
 ggsave("images/viz_combined.png", combined,
        width=3000, height=4000, scale=0.8, units="px")
 
+###################################################################
+cluster_init <- lang_params %>%
+  filter(Parameter == "ClusterInitial") %>% 
+  ggplot(aes(x=Estimate, y=reorder(Language, Estimate))) +
+  geom_errorbar(aes(xmin=hpdi_low, xmax=hpdi_high)) + 
+  geom_crossbar(aes(
+    xmin=hpdi_89_low, xmax=hpdi_89_high, fill=Parameter,
+    alpha=ifelse(outside == 1, 0.8, 0.5)), 
+    fatten=2, linewidth=0.5, width=0.8) +  
+  geom_vline(xintercept=0, color="red") +
+  annotate("rect", xmin=rope_low, xmax=rope_high, ymin=0, ymax=Inf, alpha=.2) +
+  scale_y_discrete(name=NULL) +
+  scale_fill_viridis(discrete=T, begin=0.35, end=0.35) +
+  scale_x_continuous(name=NULL) +
+  theme(legend.position="none")
+
+ggsave("images/viz_cluster_init.png", cluster_init,
+       width=2000, height=2500, units="px")
 #########################################
 ###   Sound Class analysis            ###
 #########################################

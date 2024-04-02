@@ -11,7 +11,7 @@ data <- read_tsv('data.tsv') %>%
   mutate(
     word_initial = as.factor(word_initial),
     utt_initial = as.factor(utt_initial)
-    ) %>% 
+  ) %>% 
   left_join(langs, by = join_by(Language==ID))
 
 
@@ -27,21 +27,21 @@ model <-
   brm(data=data,
       data2 = list(phylo=phylo),
       family=Gamma("log"),
-      formula=Duration ~ 1 + utt_initial + word_initial + 
-        (1 + utt_initial + word_initial | Language) +
+      formula=Duration ~ 1 + utt_initial + word_initial + ClusterInitial +
+        (1 + utt_initial + word_initial + ClusterInitial | Language) +
+        (1 | Speaker) + (1 | CLTS) +
         (1 | gr(phylo, cov=phylo)) +
-        (1 | CLTS) + (1 | Speaker) +
-        z_num_phones + z_word_freq,
+        z_num_phones + z_word_freq + z_speech_rate,
       prior=c(prior(normal(4.5, 0.1), class=Intercept),
               prior(normal(6, 0.5), class=shape),
               prior(normal(0, 0.3), class=b),
               prior(exponential(12), class=sd),
               prior(lkj(5), class=cor)
       ),
-      iter=1500, warmup=750, chains=4, cores=4,
-      control=list(adapt_delta=0.85, max_treedepth=12),
+      iter=5000, warmup=1000, chains=4, cores=4,
+      control=list(adapt_delta=0.85, max_treedepth=10),
       seed=1,
       silent=0,
-      file="models/cl_bias_full",
+      file="models/cl_bias_clusterMulti_phylo",
       backend="cmdstanr"
   )
