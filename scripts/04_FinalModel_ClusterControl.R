@@ -24,7 +24,7 @@ phylo <- vcv.phylo(df_phylo, corr=TRUE)
 
 
 # If necessary, set path to specific cmdstan installation
-set_cmdstan_path(path="/data/tools/stan/cmdstan-2.32.2-threaded/")
+set_cmdstan_path(path="/users/blum/tools/cmdstan-2.32.2-threaded/")
 
 model <- 
   brm(data=data,

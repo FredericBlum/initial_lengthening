@@ -24,7 +24,7 @@ phylo <- vcv.phylo(df_phylo, corr=TRUE)
 
 
 # If necessary, set path to specific cmdstan installation
-set_cmdstan_path(path="/data/tools/stan/cmdstan-2.32.2-threaded/")
+set_cmdstan_path(path="/users/blum/tools/cmdstan-2.32.2-threaded/")
 
 model <- 
   brm(data=data,
@@ -39,7 +39,7 @@ model <-
               prior(exponential(12), class=sd),
               prior(lkj(5), class=cor)
       ),
-      iter=3000, warmup=1000, chains=4, cores=4,
+      iter=2000, warmup=1000, chains=4, cores=4,
       thread=threading(3),
       control=list(adapt_delta=0.85, max_treedepth=10),
       seed=1,
