@@ -12,7 +12,7 @@ library(xtable)
 
 
 ###################################################################
-model <- readRDS(file="models/cl_bias_clusterMulti.rds")
+model <- readRDS(file="models/cl_bias_clusterMulti_parallel.rds")
 
 languages <- read_csv('languages.csv')
 
