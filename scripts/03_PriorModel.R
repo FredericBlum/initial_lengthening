@@ -1,36 +1,42 @@
-library(bayesplot)
-library(brms)
-library(patchwork)
 library(dplyr)
 library(readr)
-library(tidyr)
 library(stringr)
-library(tidybayes)
-library(viridis)
+library(brms)
 library(cmdstanr)
+library(ape)
 
-color_scheme_set("pink")
 
+langs <- read_csv('languages.csv')
 data <- read_tsv('data.tsv') %>% 
-  mutate(sound_class = paste(voicing, sound_class),
-         word_initial = as.factor(word_initial),
-         utt_initial = as.factor(utt_initial))
+  mutate(
+    word_initial = as.factor(word_initial),
+    utt_initial = as.factor(utt_initial),
+    cluster = as.factor(ifelse(InCluster==0, 'single', ifelse(
+      ClusterInitial==1, 'initial', 'nonInitial')
+    ))
+  ) %>% 
+  left_join(langs, by = join_by(Language==ID))
+
+
+# Read in phylogenetic control
+df_phylo <- read_rds("df-phylo.rds")
+phylo <- vcv.phylo(df_phylo, corr=TRUE)
 
 # If necessary, set path to specific cmdstan installation
 set_cmdstan_path(path = "/data/tools/stan/cmdstan-2.32.2/")
-print(cmdstan_path())
 
 cl_priors <- 
   brm(data=data,
-      family=lognormal(),
-      formula=Duration ~ 1 + utt_initial + word_initial + 
-        (1 + utt_initial + word_initial | Language / (sound_class + Speaker)) +
-        z_speech_rate + z_num_phones + z_word_freq,
-      prior=c(prior(normal(4.4, 0.2), class=Intercept),
-              prior(exponential(12), class=sigma),
+      family=Gamma("log"),
+      formula=Duration ~ 1 + utt_initial + word_initial + cluster +
+        (1 + utt_initial + word_initial + cluster | Language) +
+        (1 | Speaker) + (1 | CLTS) +
+        z_num_phones + z_word_freq + z_speech_rate,
+      prior=c(prior(normal(4.5, 0.1), class=Intercept),
+              prior(normal(6, 0.5), class=shape),
               prior(normal(0, 0.3), class=b),
               prior(exponential(12), class=sd),
-              prior(lkj(5), class=cor)),    
+              prior(lkj(5), class=cor)), 
       iter=4000, warmup=2000, chains=4, cores=4,
       seed=42,
       sample_prior="only",
