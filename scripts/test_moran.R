@@ -6,7 +6,6 @@ library(dplyr)
 library(readr)
 library(brms)
 
-size <- 0.001
 
 languages <- read_csv('languages.csv')
 
@@ -16,8 +15,7 @@ data <- read_tsv('data.tsv') %>%
     utt_initial = as.factor(utt_initial)
   ) %>% 
   left_join(languages, by = join_by(Language==ID)) %>%
-  select(Duration, Language, Latitude, Longitude) %>% 
-  sample_frac(size)
+  select(Duration, Language, Latitude, Longitude)
 
 
 matrix <- geodist(data, measure='geodesic')
@@ -25,29 +23,31 @@ matrix <- geodist(data, measure='geodesic')
 row.names(matrix) <- data$Language
 colnames(matrix) <- data$Language
 
+png(filename='images/viz_mcData.png')
 plot <- moran_plot(data$Duration, matrix)
-
-ggsave('mc_data.png', plot)
-
+plot
+dev.off()
 
 ########################
-library(sf)
-library(sfheaders)
-
-
 # Load model and compute residuals
-# To-Do: Re-run for new model with all sound classes and full draw!
-model <- readRDS(file="models/cl_gamma.rds")
+model <- readRDS(file="models/cl_bias_clusterMulti_parallel.rds")
 
-res <- predictive_error(model, new_data=data, ndraws=4)
-beep(2)
-library(beepr)
+resName <- 'model/res.rds'
+if (file.exists(resName)) {
+  res <- readRDS(file=resName)
+} else{
+  print("Sorry, the file does not yet exist. This may take some time.")
+  res <- predictive_error(model, new_data=data, ndraws=4)
+  saveRDS(res, file=resName)
+}
 
-# Need to fix how to combine the resulting stuff so that I can actually
-# test the residuals
+head(res)
 
-# rownames(data) <- NULL
-r_data <- cbind(reduced_data, res)
+matrix <- geodist(res, measure='geodesic')
+row.names(matrix) <- res$Language
+colnames(matrix) <- res$Language
 
-# then proceed as above
-
+png(filename='images/viz_mcData.png')
+plot <- moran_plot(res$Duration, matrix)
+plot
+dev.off()
