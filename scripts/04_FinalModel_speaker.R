@@ -15,7 +15,11 @@ data <- read_tsv('data.tsv') %>%
       ClusterInitial==1, 'initial', 'nonInitial')
     ))
   ) %>% 
-  left_join(langs, by = join_by(Language==ID))
+  left_join(langs, by = join_by(Language==ID)) %>% 
+  rename(
+    IPA = CLTS,
+    Family = name_macro_family
+  )
 
 
 # Read in phylogenetic control

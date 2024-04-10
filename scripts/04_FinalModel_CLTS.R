@@ -8,10 +8,6 @@ library(ape)
 
 langs <- read_csv('languages.csv')
 data <- read_tsv('data.tsv') %>% 
-  rename(
-    IPA = CLTS,
-    Family = name_macro_family
-  ) %>% 
   mutate(
     word_initial = as.factor(word_initial),
     utt_initial = as.factor(utt_initial),
@@ -19,8 +15,11 @@ data <- read_tsv('data.tsv') %>%
       ClusterInitial==1, 'initial', 'nonInitial')
     ))
   ) %>% 
-  left_join(langs, by = join_by(Language==ID))
-
+  left_join(langs, by = join_by(Language==ID)) %>% 
+  rename(
+    IPA = CLTS,
+    Family = name_macro_family
+  )
 
 # Read in phylogenetic control
 df_phylo <- read_rds("df-phylo.rds")
