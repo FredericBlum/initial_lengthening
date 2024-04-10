@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --cpus-per-task 4
+#SBATCH --cpus-per-task 12
 #SBATCH --mem-per-cpu 20G
 #SBATCH -J init_length
 #SBATCH --output=%x.%j.out
@@ -7,4 +7,4 @@
 #SBATCH --partition dlcegpu
 #SBATCH -w dlcenode04
 
-Rscript --verbose 04_FinalModel_nomulti.R
+Rscript --verbose 04_FinalModel_speaker.R
