@@ -42,13 +42,17 @@ if (file.exists(resName)) {
   saveRDS(res, file=resName)
 }
 
-head(res)
+# Combine data and residuals
+comb_res <- cbind(data, res) %>% 
+  rename(residual = res)
+head(comb_res)
 
-matrix <- geodist(res, measure='geodesic')
-row.names(matrix) <- res$Language
-colnames(matrix) <- res$Language
+# Create Matrix
+row.names(matrix) <- comb_res$Language
+colnames(matrix) <- comb_res$Language
 
+# Create plot
 png(filename='images/viz_mcData.png')
-plot <- moran_plot(res$Duration, matrix)
+plot <- moran_plot(comb_res$residual, matrix)
 plot
 dev.off()

@@ -28,7 +28,8 @@ model <-
       family=Gamma("log"),
       formula=Duration ~ 1 + utt_initial + word_initial +
         (1 + utt_initial + word_initial | Language) +
-        (1 | Speaker) + (1 | CLTS) +
+        (1 + word_initial + utt_initial | IPA) +
+        (1 | Speaker) + (1 | Family) +
         z_num_phones + z_word_freq + z_speech_rate,
       prior=c(prior(normal(4.5, 0.1), class=Intercept),
               prior(normal(6, 0.5), class=shape),
@@ -36,7 +37,7 @@ model <-
               prior(exponential(12), class=sd),
               prior(lkj(5), class=cor)
       ),
-      iter=3000, warmup=1000, chains=4, cores=4,
+      iter=2000, warmup=1000, chains=4, cores=4,
       thread=threading(3),
       control=list(adapt_delta=0.80, max_treedepth=10),
       seed=1,

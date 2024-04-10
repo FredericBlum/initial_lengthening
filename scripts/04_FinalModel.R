@@ -31,7 +31,8 @@ model <-
       family=Gamma("log"),
       formula=Duration ~ 1 + utt_initial + word_initial + cluster +
         (1 + utt_initial + word_initial + cluster | Language) +
-        (1 | Speaker) + (1 | CLTS) + (1 | gr(phylo, cov=phylo)) +
+        (1 | Speaker) + (1 | gr(phylo, cov=phylo)) +
+        (1 + word_initial + utt_initial | IPA) +
         z_num_phones + z_word_freq + z_speech_rate,
       prior=c(prior(normal(4.5, 0.1), class=Intercept),
               prior(normal(6, 0.5), class=shape),
@@ -40,10 +41,10 @@ model <-
               prior(lkj(5), class=cor)
       ),
       iter=2000, warmup=1000, chains=4, cores=4,
-      control=list(adapt_delta=0.85, max_treedepth=10),
+      control=list(adapt_delta=0.80, max_treedepth=10),
       thread=threading(3),
       seed=1,
       silent=0,
-      file="models/cl_bias_clusterMulti_phylo",
+      file="models/cl_hierarchical",
       backend="cmdstanr"
   )
