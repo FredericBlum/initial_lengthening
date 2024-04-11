@@ -10,24 +10,13 @@ SELECT
     CASE
         WHEN phone.cldf_id in (select cldf_id FROM word_initials) THEN 1 ELSE 0
         END word_initial, -- whether or not the phone is in word initial position
-	CASE
-		WHEN sound.cldf_cltsReference LIKE '%devoiced%' THEN 'voiceless' 
-		WHEN sound.cldf_cltsReference LIKE '%voiceless%' THEN 'voiceless' ELSE 'voiced'
-		END voicing,
-    CASE
-        WHEN sound.cldf_cltsReference LIKE '%stop%' THEN 'stop'
-		WHEN sound.cldf_cltsReference LIKE '%affricate%' THEN 'stop'
-		WHEN sound.cldf_cltsReference LIKE '%fricative%' THEN 'fricative' ELSE 'sonorant'
-        END sound_class,
-	sound.cldf_cltsReference AS CLTS,
     -- normalized word length:
 	ROUND(((phones_per_word.num_phones - sd_num_phones.avg_num_phones) / sd_num_phones.num_phones), 3) AS z_num_phones,
 	-- normalized speech rate of the utterance:
 	ROUND(((utt.log_speech_rate - sd_speech_rate.avg_speech_rate) / sd_speech_rate.speech_rate), 3) AS z_speech_rate,
 	-- normalized frequency of the word form:
 	ROUND(((forms.freq - sd_word_freq.avg_word_freq) / sd_word_freq.word_freq), 3) AS z_word_freq,
-	coalesce(cluster.in_cluster, false) AS InCluster,
-	coalesce(cluster.initial, false) AS ClusterInitial
+	cluster.cluster_status
 FROM
     "phones.csv" AS phone,
     "words.csv" AS word, -- word-level metadata joined ON phone.wd_id = word.cldf_id
@@ -103,22 +92,25 @@ ON
 	word.cldf_languageReference = sd_word_freq.cldf_languageReference
 LEFT JOIN
     (
-        select
+        SELECT
             pp.cldf_id,
             pp.wd_id,
             pp.cldf_name,
-            not previous_is_consonant and instr(cldf_cltsreference, 'consonant') > 0 and next_is_consonant and next_wd_id = wd_id as initial,
-            ((previous_is_consonant and previous_wd_id = wd_id) or (next_is_consonant and next_wd_id = wd_id)) and instr(cldf_cltsreference, 'consonant') > 0 as in_cluster
-        from (
-            select
+            CASE
+                WHEN not previous_is_consonant and instr(cldf_cltsreference, 'consonant') > 0 and next_is_consonant and next_wd_id = wd_id THEN 'clusterInitial'
+                WHEN ((previous_is_consonant and previous_wd_id = wd_id) or (next_is_consonant and next_wd_id = wd_id)) and instr(cldf_cltsreference, 'consonant') > 0 THEN 'noInitial'
+                ELSE 'noCluster'
+            END cluster_status
+        FROM (
+            SELECT
                 p.*,
                 s.cldf_cltsreference,
                 lag(instr(s.cldf_cltsreference, 'consonant') > 0) over () as previous_is_consonant,
                 lag(p.wd_id) over () as previous_wd_id,
                 lead(instr(s.cldf_cltsreference, 'consonant') > 0) over () as next_is_consonant,
                 lead(p.wd_id) over () as next_wd_id
-            from `phones.csv` as p
-            left outer join `parametertable` as s on p.cldf_parameterReference = s.cldf_id) as pp
+            FROM `phones.csv` as p
+            LEFT OUTER JOIN `parametertable` as s on p.cldf_parameterReference = s.cldf_id) as pp
     ) AS cluster
 ON
     phone.cldf_id = cluster.cldf_id
