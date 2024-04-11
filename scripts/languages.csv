@@ -1,4 +1,4 @@
-ID,Name,Macroarea,Latitude,Longitude,Glottocode,ISO639P3code,Source,family_id,parent_id,name_language,name_macro_family,name_micro_family,phylo,Language
+ID,Name,Macroarea,Latitude,Longitude,Glottocode,ISO639P3code,Source,family_id,parent_id,name_language,Family,name_micro_family,phylo,Language
 anal1239,Anal,Eurasia,24.05,94.28,anal1239,NA,doreco-anal1239,sino1245,oldk1252,Anal,Sino-Tibetan,Northwestern Kuki-Chin,Northwestern Kuki-Chin,Anal
 apah1238,Yali (Apahapsili),Papunesia,-4.08,139.46,apah1238,NA,doreco-apah1238,nucl1709,pass1247,Apahapsili,Nuclear Trans New Guinea,Pass Valley Yali,Pass Valley Yali,Yali (Apahapsili)
 arap1274,Arapaho,North America,43.39,-108.81,arap1274,NA,doreco-arap1274,algi1248,arap1280,Arapaho,Algic,Arapaho-Gros Ventre-Besawunena,Arapaho-Gros Ventre-Besawunena,Arapaho

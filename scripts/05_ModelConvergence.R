@@ -1,23 +1,30 @@
-library(tidyverse)
+library(readr)
+library(dplyr)
 library(patchwork)
 library(posterior)
 library(bayesplot)
 library(ggplot2)
+library(viridis)
+library(tidybayes)
 library(brms)
 
 color_scheme_set("pink")
 
+langs <- read_csv('languages.csv')
 data <- read_tsv('data.tsv') %>% 
-  mutate(sound_class = paste(voicing, sound_class),
-         word_initial = as.factor(word_initial),
-         utt_initial = as.factor(utt_initial),
-		 initial = ifelse(
-			utt_initial==1, "utt", ifelse(
-      		word_initial==1, "word", "other"
-  )))
+  mutate(
+    cluster = as.factor(ifelse(InCluster==0, 'single', ifelse(
+      ClusterInitial==1, 'initial', 'nonInitial')
+    )),
+    initial=ifelse(
+      utt_initial==1, "utterance-initial", ifelse(
+        word_initial==1, "word-initial", "other"
+      )
+  )) %>% 
+  left_join(langs, by = join_by(Language==ID))
 
-# model <- readRDS(file="models/cl_final.rds")
-model <- readRDS(file="models/cl_gamma.rds")
+
+model <- readRDS(file="models/test3.rds")
 
 #########################################
 ###     model convergence             ###
@@ -30,11 +37,11 @@ posterior_max <- as.array(model)
 pred_pairs <- mcmc_pairs(posterior_max, np=np_max,
                          pars=c(
                            'b_Intercept', 'b_z_word_freq', 'b_z_num_phones',
-                           'b_word_initial1', 'b_utt_initial1', 'shape'
+                           'b_word_initial', 'b_utt_initial', 'shape'
                            ), 
                          off_diag_args=list(size=0.75))
 
-diver_scatter <- mcmc_scatter(posterior_max, np=np_max, regex_pars=c('b_Intercept', 'sigma'))
+diver_scatter <- mcmc_scatter(posterior_max, np=np_max, pars=c('b_Intercept', 'shape'))
 ggsave('images/viz_pairsPred.png', pred_pairs, scale=1.3,
        width=3000, height=2800, units="px")
 
@@ -45,24 +52,20 @@ ggsave('images/viz_pairsPredz.png', zipfs_pairs, scale=1.3,
        width=3000, height=2800, units="px")
 
 collinearity_pred <- as_draws_df(model) %>% 
-  select(b_z_speech_rate:b_z_word_freq) %>% 
-  cor()
-
-collinearity_pred <- as_draws_df(model) %>% 
-  select(Intercept:b_word_initial1) %>% 
+  select(b_z_num_phones:b_z_word_freq) %>% 
   cor()
 
 print(paste(
   "The correlation between word form frequenzy and number of phones per word is",
-  round(collinearity_pred[2,3], 2)
+  round(collinearity_pred[1,2], 2)
   ))
 
 # trank plots for intercept and sigma
-both_traces <- mcmc_trace(posterior_max, pars=c("b_Intercept", "sigma"), 
+both_traces <- mcmc_trace(posterior_max, pars=c("Intercept", "shape"), 
                           facet_args=list(ncol=2, strip.position="left")) +
   theme(legend.position="none")
 
-both_ranks <- mcmc_rank_overlay(posterior_max, pars=c("b_Intercept", "sigma"), 
+both_ranks <- mcmc_rank_overlay(posterior_max, pars=c("Intercept", "shape"), 
                                 facet_args=list(ncol=2, strip.position="left")) +
   # coord_cartesian(ylim=c(0, 200)) + 
   theme(legend.position="none")
@@ -100,6 +103,95 @@ ggsave('images/eval_rhat_neff.png', rhat_neff_plot, scale=1)
 #########################################
 ###     posterior predictive checks   ###
 #########################################
+
+#########################################
+# Run fitted model predictions
+#########################################
+### Using epreds
+if (file.exists("models/pred_expected.rds")) {
+  epreds <- readRDS(file="models/pred_expected.rds")
+} else{
+  print("Sorry, the file does not yet exist. This may take some time.")
+  epreds <- epred_draws(model, newdata=data)
+  saveRDS(epreds, file="models/pred_expected.rds")  
+}
+
+plot_expected <- epreds %>% 
+  ggplot(aes(y=.epred, x=initial)) +
+  geom_violin(aes(fill=initial)) +
+  geom_boxplot(width=0.5, 
+               outlier.size=1, outlier.color="black", outlier.alpha=0.3) +
+  # If you want to plot the distribution across all languages, uncomment the
+  # following line and set ncol=n according to your needs.
+  # facet_wrap(~Language, ncol=4) +
+  scale_fill_viridis(discrete=TRUE, end=0.7) +
+  scale_y_log10(limits=c(5, 500), breaks=c(10, 20, 30, 70, 150, 300, 500), 
+                name="duration on log-axis") +
+  scale_x_discrete(label=NULL, name=NULL) +
+  theme_grey(base_size=11) +
+  theme(legend.position='bottom', legend.title=element_blank())
+
+ggsave(plot_expected, filename='images/viz_post_expected.png', 
+       width=1600, height=2300, units="px")
+
+#########################################
+# Using posterior_draws from tidybayes
+if (file.exists("models/pred_predicted.rds")) {
+  m_preds <- readRDS(file="models/pred_predicted.rds")
+} else{
+  print("Sorry, the file does not yet exist. This may take some time.")
+  m_preds <- predicted_draws(model, newdata=data)
+  saveRDS(m_preds, file="models/pred_predicted.rds")  
+}
+
+plot_preds <- m_preds %>% 
+  ggplot(aes(y=.prediction, x=initial)) +
+  geom_violin(aes(fill=initial)) +
+  geom_boxplot(width=0.5, 
+               outlier.size=1, outlier.color="black", outlier.alpha=0.3) +
+  # If you want to plot the distribution across all languages, uncomment the
+  # following line and set ncol=n according to your needs.
+  # facet_wrap(~Language, ncol=4) +
+  scale_fill_viridis(discrete=TRUE, end=0.7) +
+  scale_y_log10(limits=c(5, 500), breaks=c(10, 20, 30, 70, 150, 300, 500), 
+                name="duration on log-axis") +
+  scale_x_discrete(label=NULL, name=NULL) +
+  theme_grey(base_size=11) +
+  theme(legend.position='bottom', legend.title=element_blank())
+
+ggsave(plot_preds, filename='images/viz_post_predicted.png', 
+       width=1600, height=2300, units="px")
+
+# Using fitted
+if (file.exists("models/pred_fitted.rds")) {
+  m_fit <- readRDS(file="models/pred_fitted.rds")
+} else{
+  print("Sorry, the file does not yet exist. This may take some time.")
+  m_fit <- fitted(model, summary=TRUE)
+  saveRDS(m_fit, file="models/pred_fitted.rds")  
+}
+
+comb <- cbind(data, m_fit)
+
+plot_fit <- comb %>% 
+  ggplot(aes(y=Estimate, x=initial)) +
+  geom_violin(aes(fill=initial)) +
+  geom_boxplot(width=0.5, 
+               outlier.size=1, outlier.color="black", outlier.alpha=0.3) +
+  # If you want to plot the distribution across all languages, uncomment the
+  # following line and set ncol=n according to your needs.
+  # facet_wrap(~Language, ncol=4) +
+  scale_fill_viridis(discrete=TRUE, end=0.7) +
+  scale_y_log10(limits=c(5, 500), breaks=c(10, 20, 30, 70, 150, 300, 500), 
+                name="duration on log-axis") +
+  scale_x_discrete(label=NULL, name=NULL) +
+  theme_grey(base_size=11) +
+  theme(legend.position='bottom', legend.title=element_blank())
+
+ggsave(plot_fit, filename='images/viz_post_fit.png', 
+       width=1600, height=2300, units="px")
+
+
 if (file.exists("models/pred_post.rds")) {
   sim_data <- readRDS(file="models/pred_post.rds")
 } else{
@@ -134,3 +226,4 @@ violin_comp <- ppc_violin_grouped(duration_vals, sim_data[1:4,], group_init,
 
 ppc_sum <- (box_comp) / (violin_comp) + plot_layout(guides="collect")
 ggsave('images/eval_ppcsum.png', ppc_sum, width=2000, height=1300, units="px")
+

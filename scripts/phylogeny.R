@@ -116,7 +116,8 @@ lang_fam_gloto_data <-
                      TRUE ~ name_micro_family),
          name_macro_family =
            case_when(is.na(name_macro_family) ~ name_language,
-                     TRUE ~ name_macro_family))
+                     TRUE ~ name_macro_family)) %>% 
+  rename(Family=name_macro_family)
 
 # Run functions
 langs <- read_csv('../doreco/cldf/languages.csv')
