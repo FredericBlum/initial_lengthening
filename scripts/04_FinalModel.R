@@ -6,13 +6,10 @@ library(cmdstanr)
 library(ape)
 
 
-langs <- read_csv('languages.csv')
+langs <- read_csv('languages.csv') %>% 
+  select(Name, Macroarea, Latitude, Longitude, Glottocode, Family, phylo)
 data <- read_tsv('data.tsv') %>% 
-  mutate(
-    cluster = as.factor(ifelse(InCluster==0, 'single', ifelse(
-      ClusterInitial==1, 'initial', 'nonInitial')
-    ))) %>% 
-  left_join(langs, by = join_by(Language==ID))
+  left_join(langs, by = join_by(Language==Glottocode))
 
 # Read in phylogenetic control
 df_phylo <- read_rds("df-phylo.rds")
