@@ -23,10 +23,10 @@ set_cmdstan_path(path="/data/users/blum/tools/cmdstan-2.32.2-threaded/")
 model <- 
   brm(data=data,
       family=Gamma("log"),
-      formula=Duration ~ 1 + utt_initial + word_initial + cluster +
-        (1 + utt_initial + word_initial + cluster | Language) +
+      formula=Duration ~ 1 + utt_initial + word_initial + cluster_status +
+        (1 + utt_initial + word_initial + cluster_status | Language) +
         (1 | Speaker) + (1 | Family) +
-        (1 + word_initial + utt_initial | IPA) +
+        (1 + word_initial + utt_initial | CLTS) +
         z_num_phones + z_word_freq + z_speech_rate,
       prior=c(prior(normal(4.5, 0.1), class=Intercept),
               prior(normal(6, 0.5), class=shape),
