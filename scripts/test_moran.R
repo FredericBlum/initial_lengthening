@@ -11,7 +11,8 @@ options(bitmapType="cairo")
 langs <- read_csv('languages.csv') %>% 
   select(Name, Macroarea, Latitude, Longitude, Glottocode, Family, phylo)
 data <- read_tsv('data.tsv') %>% 
-  left_join(langs, by = join_by(Language==Glottocode))
+  left_join(langs, by = join_by(Language==Glottocode)) %>% 
+  sample_frac(0.001)
 
 africa <- data %>% filter(Macroarea=='Africa')
 australia <- data %>% filter(Macroarea=='Australia')
@@ -20,16 +21,19 @@ north_america <- data %>% filter(Macroarea=='North America')
 papunesia <- data %>% filter(Macroarea=='Papunesia')
 south_america <- data %>% filter(Macroarea=='South America')
 
-plot_data <- africa %>% sample_frac(0.001)
+regions <- list(africa, australia, eurasia, north_america, papunesia, south_america)
 
+for (region in regions) {
+  name <- as.character(region[1, 14])
+  matrix <- geodist(region, measure='geodesic')
+  
+  row.names(matrix) <- region$Language
+  colnames(matrix) <- region$Language
+  
+  plot <- moran_plot(region$Duration, matrix)
+  ggsave(filename=paste0('images/viz_mcData_', name, '.png'), plot)
+}
 
-matrix <- geodist(plot_data, measure='geodesic')
-
-row.names(matrix) <- plot_data$Language
-colnames(matrix) <- plot_data$Language
-
-plot <- moran_plot(plot_data$Duration, matrix)
-ggsave(filename='images/viz_mcdata_africa.png', plot)
 
 ########################
 # Load model and compute residuals
@@ -56,12 +60,15 @@ north_america <- comb_res %>% filter(Macroarea=='North America')
 papunesia <- comb_res %>% filter(Macroarea=='Papunesia')
 south_america <- comb_res %>% filter(Macroarea=='South America')
 
-plot_residuals <- africa
-# Create Matrix
-matrix <- geodist(plot_residuals, measure='geodesic')
-row.names(matrix) <- plot_residuals$Language
-colnames(matrix) <- plot_residuals$Language
+regions <- list(africa, australia, eurasia, north_america, papunesia, south_america)
 
-# Create plot
-plot <- moran_plot(plot_residuals$residual, matrix)
-ggsave(filename='images/viz_mcResiduals_africa.png', plot)
+for (region in regions) {
+  name <- as.character(region[1, 14])
+  matrix <- geodist(region, measure='geodesic')
+  
+  row.names(matrix) <- region$Language
+  colnames(matrix) <- region$Language
+  
+  plot <- moran_plot(region$Duration, matrix)
+  ggsave(filename=paste0('images/viz_mcResiduals_', name, '.png'), plot)
+}
