@@ -12,7 +12,7 @@ library(xtable)
 
 
 ###################################################################
-model <- readRDS(file="models/cl_CLTS.rds")
+model <- readRDS(file="models/cl_noCluster.rds")
 
 languages <- read_csv('languages.csv')
 
@@ -137,7 +137,7 @@ word_init <- lang_params %>%
   scale_x_continuous(name=NULL) +
   theme(legend.position="none")
 
-ggsave("images/viz_wordInit_CLTS.png", word_init,
+ggsave("images/viz_wordInit_noCluster.png", word_init,
        width=2000, height=2500, units="px")
 
 ###################################################################
