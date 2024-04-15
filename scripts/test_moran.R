@@ -6,6 +6,7 @@ library(dplyr)
 library(readr)
 library(brms)
 
+options(bitmapType="cairo")
 
 langs <- read_csv('languages.csv') %>% 
   select(Name, Macroarea, Latitude, Longitude, Glottocode, Family, phylo)
@@ -19,7 +20,7 @@ north_america <- data %>% filter(Macroarea=='North America')
 papunesia <- data %>% filter(Macroarea=='Papunesia')
 south_america <- data %>% filter(Macroarea=='South America')
 
-plot_data <- africa
+plot_data <- africa %>% sample_frac(0.001)
 
 
 matrix <- geodist(plot_data, measure='geodesic')
@@ -27,14 +28,12 @@ matrix <- geodist(plot_data, measure='geodesic')
 row.names(matrix) <- plot_data$Language
 colnames(matrix) <- plot_data$Language
 
-png(filename='images/viz_mcData_africa.png')
 plot <- moran_plot(plot_data$Duration, matrix)
-plot
-dev.off()
+ggsave(filename='images/viz_mcdata_africa.png', plot)
 
 ########################
 # Load model and compute residuals
-model <- readRDS(file="models/cl_noCluster")
+model <- readRDS(file="models/cl_noCluster.rds")
 
 resName <- 'model/res.rds'
 if (file.exists(resName)) {
@@ -64,7 +63,5 @@ row.names(matrix) <- plot_residuals$Language
 colnames(matrix) <- plot_residuals$Language
 
 # Create plot
-png(filename='images/viz_mcResiduals_africa.png')
 plot <- moran_plot(plot_residuals$residual, matrix)
-plot
-dev.off()
+ggsave(filename='images/viz_mcResiduals_africa.png', plot)
