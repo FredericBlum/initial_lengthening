@@ -7,4 +7,4 @@
 #SBATCH --partition dlcegpu
 #SBATCH -w dlcenode04
 
-Rscript --verbose 04_FinalModel_speaker.R
+Rscript --verbose 04_FinalModel_CLTS.R
