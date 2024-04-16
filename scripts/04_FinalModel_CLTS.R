@@ -19,7 +19,7 @@ model <-
       family=Gamma("log"),
       formula=Duration ~ 1 + utt_initial + word_initial + cluster_status +
         (1 + utt_initial + word_initial + cluster_status | Language) +
-        (1 | Speaker) + (1 | Family) +
+        (1 + utt_initial + word_initial | Speaker) +
         (1 + utt_initial + word_initial | CLTS) +
         z_num_phones + z_word_freq + z_speech_rate,
       prior=c(prior(normal(4.5, 0.1), class=Intercept),
@@ -33,6 +33,6 @@ model <-
       control=list(adapt_delta=0.85, max_treedepth=10),
       seed=1,
       silent=0,
-      file="models/cl_var",
+      file="models/cl_noFam",
       backend="cmdstanr"
   )
