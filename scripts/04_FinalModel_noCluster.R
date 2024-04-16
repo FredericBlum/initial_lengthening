@@ -8,21 +8,8 @@ library(ape)
 
 langs <- read_csv('languages.csv')
 data <- read_tsv('data.tsv') %>% 
-  mutate(
-    word_initial = as.factor(word_initial),
-    utt_initial = as.factor(utt_initial)) %>% 
-  filter(InCluster==0) %>% 
-  left_join(langs, by = join_by(Language==ID)) %>% 
-  rename(
-    IPA = CLTS,
-    Family = name_macro_family
-  )
-
-
-# Read in phylogenetic control
-df_phylo <- read_rds("df-phylo.rds")
-phylo <- vcv.phylo(df_phylo, corr=TRUE)
-
+  left_join(langs, by = join_by(Language==Glottocode)) %>% 
+  filter(cluster_status=='noCluster')
 
 # If necessary, set path to specific cmdstan installation
 set_cmdstan_path(path="/data/users/blum/tools/cmdstan-2.32.2-threaded/")
@@ -31,9 +18,9 @@ model <-
   brm(data=data,
       family=Gamma("log"),
       formula=Duration ~ 1 + utt_initial + word_initial +
-        (1 + utt_initial + word_initial | Language) +
-        (1 + word_initial + utt_initial | IPA) +
-        (1 | Speaker) + (1 | Family) +
+        (1 + utt_initial + word_initial | (Language/Speaker)) +
+        (1 + word_initial + utt_initial | CLTS) +
+        (1 | Family) +
         z_num_phones + z_word_freq + z_speech_rate,
       prior=c(prior(normal(4.5, 0.1), class=Intercept),
               prior(normal(6, 0.5), class=shape),

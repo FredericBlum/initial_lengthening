@@ -7,15 +7,9 @@ library(ape)
 
 
 langs <- read_csv('languages.csv') %>% 
-  select(Name, Macroarea, Latitude, Longitude, Glottocode, Family, phylo)
+  select(Name, Macroarea, Latitude, Longitude, Glottocode, Family)
 data <- read_tsv('data.tsv') %>% 
   left_join(langs, by = join_by(Language==Glottocode))
-
-
-# Read in phylogenetic control
-df_phylo <- read_rds("df-phylo.rds")
-phylo <- vcv.phylo(df_phylo, corr=TRUE)
-
 
 # If necessary, set path to specific cmdstan installation
 set_cmdstan_path(path="/data/users/blum/tools/cmdstan-2.32.2-threaded/")
@@ -26,7 +20,7 @@ model <-
       formula=Duration ~ 1 + utt_initial + word_initial + cluster_status +
         (1 + utt_initial + word_initial + cluster_status | Language) +
         (1 | Speaker) + (1 | Family) +
-        (1 + word_initial + utt_initial | CLTS) +
+        (1 + utt_initial + word_initial | CLTS) +
         z_num_phones + z_word_freq + z_speech_rate,
       prior=c(prior(normal(4.5, 0.1), class=Intercept),
               prior(normal(6, 0.5), class=shape),
