@@ -28,8 +28,8 @@ model <-
               prior(exponential(12), class=sd),
               prior(lkj(5), class=cor)
       ),
-      iter=3000, warmup=1500, chains=4, cores=4,
-      thread=threading(3),
+      iter=2000, warmup=1000, chains=4, cores=4,
+      threads=threading(3),
       control=list(adapt_delta=0.85, max_treedepth=10),
       seed=1,
       silent=0,
