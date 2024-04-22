@@ -13,22 +13,23 @@ set_cmdstan_path(path="/data/users/blum/tools/cmdstan-2.32.2-threaded/")
 model <- 
   brm(data=data,
       family=Gamma("log"),
-      formula=Duration ~ 1 + utt_initial + word_initial +
-        (1 + utt_initial + word_initial | (Language/Speaker)) +
-        (1 + word_initial + utt_initial | CLTS) +
+      formula=Duration ~ 1 + utt_initial + word_initial + cluster_status +
+        (1 + utt_initial + word_initial + cluster_status | Language) +
+        (1 + utt_initial + word_initial | Speaker) +
+        (1 + utt_initial + word_initial | CLTS) +
         (1 | Family) +
         z_num_phones + z_word_freq + z_speech_rate,
       prior=c(prior(normal(4.5, 0.1), class=Intercept),
               prior(normal(6, 0.5), class=shape),
               prior(normal(0, 0.3), class=b),
-              prior(exponential(12), class=sd),
+              prior(gamma(3, 30), class=sd),
               prior(lkj(5), class=cor)
       ),
-      iter=2000, warmup=1000, chains=4, cores=4,
+      iter=4000, warmup=2500, chains=4, cores=4,
       threads=threading(3),
-      control=list(adapt_delta=0.80, max_treedepth=10),
+      control=list(adapt_delta=0.90, max_treedepth=10),
       seed=1,
       silent=0,
-      file="models/cl_noCluster",
+      file="models/cl_speakerGamma",
       backend="cmdstanr"
   )

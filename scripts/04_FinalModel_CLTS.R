@@ -3,13 +3,9 @@ library(readr)
 library(stringr)
 library(brms)
 library(cmdstanr)
-library(ape)
 
 
-langs <- read_csv('languages.csv') %>% 
-  select(Name, Macroarea, Latitude, Longitude, Glottocode, Family)
-data <- read_tsv('data.tsv') %>% 
-  left_join(langs, by = join_by(Language==Glottocode))
+data <- read_tsv('data.tsv')
 
 # If necessary, set path to specific cmdstan installation
 set_cmdstan_path(path="/data/users/blum/tools/cmdstan-2.32.2-threaded/")

@@ -2,9 +2,9 @@ install.packages('groundhog', repos='https://ftp.fau.de/cran/')
 library('groundhog')
 set.groundhog.folder('./R_groundhog/')
 pkgs <- c('brms','viridis', 'readr', 'posterior', 'dplyr', 'ggplot2', 'ggdist',
-          'gghalves', 'patchwork', 'bayesplot', 'tidybayes', 'xtable', 'ggrepel',
-          'rnaturalearth', 'rnaturalearthdata', 'tidyr', 'stringr', 'ape',
-          'geostan', 'geodist', 'gridExtra')
+          'gghalves', 'patchwork', 'bayesplot', 'tidybayes', 'xtable', 'tidyr',
+          'ggrepel', 'rnaturalearth', 'rnaturalearthdata', , 'stringr',
+          'geostan', 'geodist', 'gridExtra', 'extraDistr')
 groundhog.library(pkgs, '2023-04-01', force.install=TRUE)
 groundhog.library('github::stan-dev/cmdstanr', '2023-08-01', force.install=TRUE)
 

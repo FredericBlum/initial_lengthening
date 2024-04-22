@@ -12,7 +12,7 @@ library(xtable)
 
 
 ###################################################################
-model <- readRDS(file="models/cl_noCluster.rds")
+model <- readRDS(file="models/cl_Speaker.rds")
 
 languages <- read_csv('languages.csv')
 
@@ -36,10 +36,11 @@ para_vals <- posterior_summary(model) %>%
   data.frame() %>% as_tibble(rownames="Parameter") %>% 
   left_join(hpdi_89) %>% left_join(hpdi_95) %>% 
   mutate(Parameter=str_replace(Parameter, "b_([a-z]*)_initial1", "\\1-initial"),
-         Parameter=str_replace(Parameter, "b_", "")) 
+         Parameter=str_replace(Parameter, "b_", ""),
+         Parameter=str_replace(Parameter, "_initial", "-initial")) 
 
 fix_eff <- para_vals %>% 
-  filter(Parameter %in% c("word-initial", "utt-initial", "ClusterInitial"))
+  filter(Parameter %in% c("word-initial", "utt-initial"))
 
 lang_params <- para_vals %>% 
   filter(grepl("^r_Language\\[.*", Parameter)) %>% 
@@ -137,7 +138,7 @@ word_init <- lang_params %>%
   scale_x_continuous(name=NULL) +
   theme(legend.position="none")
 
-ggsave("images/viz_wordInit_Speaker.png", word_init,
+ggsave("images/viz_wordInit_var.png", word_init,
        width=2000, height=2500, units="px")
 
 ###################################################################
