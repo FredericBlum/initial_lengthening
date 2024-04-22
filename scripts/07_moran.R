@@ -9,10 +9,10 @@ library(brms)
 options(bitmapType="cairo")
 
 langs <- read_csv('languages.csv') %>% 
-  select(Name, Macroarea, Latitude, Longitude, Glottocode, Family, phylo)
+  select(Macroarea, Latitude, Longitude, Glottocode)
 data <- read_tsv('data.tsv') %>% 
   left_join(langs, by = join_by(Language==Glottocode)) %>% 
-  sample_frac(0.001)
+  rename(latitude=Latitude, longitude=Longitude)
 
 africa <- data %>% filter(Macroarea=='Africa')
 australia <- data %>% filter(Macroarea=='Australia')
@@ -37,7 +37,7 @@ for (region in regions) {
 
 ########################
 # Load model and compute residuals
-model <- readRDS(file="models/cl_noCluster.rds")
+model <- readRDS(file="models/cl_Speaker.rds")
 
 resName <- 'model/res.rds'
 if (file.exists(resName)) {
