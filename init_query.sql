@@ -3,6 +3,7 @@ SELECT
 	phone.cldf_name AS Value,
 	1000*phone.duration AS Duration,
     word.cldf_languageReference AS Language,
+	language.family AS Family,
     word.speaker_id AS Speaker,
     CASE
         WHEN phone.cldf_id in (select cldf_id FROM utterance_initials) THEN 1 ELSE 0
@@ -21,7 +22,8 @@ SELECT
 FROM
     "phones.csv" AS phone,
     "words.csv" AS word, -- word-level metadata joined ON phone.wd_id = word.cldf_id
-    ParameterTable AS sound -- sound-level metadata joined ON phone.cldf_parameterReference = sound.cldf_id
+    ParameterTable AS sound, -- sound-level metadata joined ON phone.cldf_parameterReference = sound.cldf_id
+	LanguageTable AS language
 LEFT JOIN
     (
         SELECT
@@ -118,6 +120,7 @@ ON
 WHERE
     phone.wd_id = word.cldf_id AND
     phone.cldf_parameterReference = sound.cldf_id AND
+	word.cldf_languageReference = language.cldf_id AND
     -- We only consider non-long, pulmonic consonants ...
     sound.cldf_cltsReference LIKE '%_consonant' AND
     sound.cldf_cltsReference NOT LIKE '%long%' AND
