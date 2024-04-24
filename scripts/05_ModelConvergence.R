@@ -8,21 +8,17 @@ library(viridis)
 library(tidybayes)
 library(brms)
 
+options(bitmapType="cairo")
+
 color_scheme_set("pink")
 
-langs <- read_csv('languages.csv')
 data <- read_tsv('data.tsv') %>% 
   mutate(
-    cluster = as.factor(ifelse(InCluster==0, 'single', ifelse(
-      ClusterInitial==1, 'initial', 'nonInitial')
-    )),
     initial=ifelse(
       utt_initial==1, "utterance-initial", ifelse(
         word_initial==1, "word-initial", "other"
       )
-  )) %>% 
-  left_join(langs, by = join_by(Language==ID))
-
+  ))
 
 model <- readRDS(file="models/cl_Speaker.rds")
 
@@ -37,7 +33,7 @@ posterior_max <- as.array(model)
 pred_pairs <- mcmc_pairs(posterior_max, np=np_max,
                          pars=c(
                            'b_Intercept', 'b_z_word_freq', 'b_z_num_phones',
-                           'b_word_initial', 'b_utt_initial', 'shape'
+                           'b_word_initial1', 'b_utt_initial1', 'shape'
                            ), 
                          off_diag_args=list(size=0.75))
 
