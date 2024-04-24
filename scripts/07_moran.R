@@ -12,7 +12,8 @@ langs <- read_csv('languages.csv') %>%
   select(Macroarea, Latitude, Longitude, Glottocode)
 data <- read_tsv('data.tsv') %>% 
   left_join(langs, by = join_by(Language==Glottocode)) %>% 
-  rename(latitude=Latitude, longitude=Longitude)
+  rename(latitude=Latitude, longitude=Longitude) %>% 
+  filter(word_initial==1)
 
 africa <- data %>% filter(Macroarea=='Africa')
 australia <- data %>% filter(Macroarea=='Australia')
