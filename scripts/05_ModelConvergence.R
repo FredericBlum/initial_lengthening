@@ -24,7 +24,7 @@ data <- read_tsv('data.tsv') %>%
   left_join(langs, by = join_by(Language==ID))
 
 
-model <- readRDS(file="models/test3.rds")
+model <- readRDS(file="models/cl_Speaker.rds")
 
 #########################################
 ###     model convergence             ###
