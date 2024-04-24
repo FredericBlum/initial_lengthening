@@ -12,8 +12,7 @@ langs <- read_csv('languages.csv') %>%
   select(Macroarea, Latitude, Longitude, Glottocode)
 data <- read_tsv('data.tsv') %>% 
   left_join(langs, by = join_by(Language==Glottocode)) %>% 
-  rename(latitude=Latitude, longitude=Longitude) %>% 
-  filter(word_initial==1)
+  rename(latitude=Latitude, longitude=Longitude) 
 
 africa <- data %>% filter(Macroarea=='Africa')
 australia <- data %>% filter(Macroarea=='Australia')
@@ -26,6 +25,7 @@ regions <- list(africa, australia, eurasia, north_america, papunesia, south_amer
 
 for (region in regions) {
   name <- as.character(region[1, 14])
+  region <- region %>% filter(word_initial==1)
   matrix <- geodist(region, measure='geodesic')
   
   row.names(matrix) <- region$Language
@@ -51,7 +51,8 @@ if (file.exists(resName)) {
 
 # Combine data and residuals
 comb_res <- cbind(data, res) %>% 
-  rename(residual = res)
+  rename(residual = res) %>%
+  filter(word_initial==1)
 head(comb_res)
 
 africa <- comb_res %>% filter(Macroarea=='Africa')
