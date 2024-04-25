@@ -14,11 +14,15 @@ color_scheme_set("pink")
 
 data <- read_tsv('data.tsv') %>% 
   mutate(
-    initial=ifelse(
+    initial=as.factor(ifelse(
       utt_initial==1, "utterance-initial", ifelse(
         word_initial==1, "word-initial", "other"
-      )
-  ))
+      ))
+  )) %>%
+mutate(cluster = as.factor(ifelse(cluster_status=='clusterInitial', "initial", ifelse(
+	      cluster_status=='noCluster', 'single', 'nonInitial'))),
+       word_initial=as.factor(word_initial),
+       utt_initial=as.factor(word_initial))
 
 model <- readRDS(file="models/cl_Speaker.rds")
 
@@ -57,11 +61,11 @@ print(paste(
   ))
 
 # trank plots for intercept and sigma
-both_traces <- mcmc_trace(posterior_max, pars=c("Intercept", "shape"), 
+both_traces <- mcmc_trace(posterior_max, pars=c("b_Intercept", "shape"), 
                           facet_args=list(ncol=2, strip.position="left")) +
   theme(legend.position="none")
 
-both_ranks <- mcmc_rank_overlay(posterior_max, pars=c("Intercept", "shape"), 
+both_ranks <- mcmc_rank_overlay(posterior_max, pars=c("b_Intercept", "shape"), 
                                 facet_args=list(ncol=2, strip.position="left")) +
   # coord_cartesian(ylim=c(0, 200)) + 
   theme(legend.position="none")
@@ -108,7 +112,7 @@ if (file.exists("models/pred_expected.rds")) {
   epreds <- readRDS(file="models/pred_expected.rds")
 } else{
   print("Sorry, the file does not yet exist. This may take some time.")
-  epreds <- epred_draws(model, newdata=data)
+  epreds <- epred_draws(model, newdata=data, allow_new_levels=TRUE)
   saveRDS(epreds, file="models/pred_expected.rds")  
 }
 
@@ -136,7 +140,7 @@ if (file.exists("models/pred_predicted.rds")) {
   m_preds <- readRDS(file="models/pred_predicted.rds")
 } else{
   print("Sorry, the file does not yet exist. This may take some time.")
-  m_preds <- predicted_draws(model, newdata=data)
+  m_preds <- predicted_draws(model, newdata=data, allow_new_levels=TRUE)
   saveRDS(m_preds, file="models/pred_predicted.rds")  
 }
 
@@ -163,7 +167,7 @@ if (file.exists("models/pred_fitted.rds")) {
   m_fit <- readRDS(file="models/pred_fitted.rds")
 } else{
   print("Sorry, the file does not yet exist. This may take some time.")
-  m_fit <- fitted(model, summary=TRUE)
+  m_fit <- fitted(model, summary=TRUE, allow_new_levels=TRUE)
   saveRDS(m_fit, file="models/pred_fitted.rds")  
 }
 
@@ -192,7 +196,7 @@ if (file.exists("models/pred_post.rds")) {
   sim_data <- readRDS(file="models/pred_post.rds")
 } else{
   print("Sorry, the file does not yet exist. This may take some time.")
-  sim_data <- posterior_predict(model, ndraws=4, cores=getOption("mc.cores", 4))
+  sim_data <- posterior_predict(model, ndraws=4, cores=getOption("mc.cores", 4), allow_new_levels=TRUE)
   saveRDS(sim_data, file="models/pred_post.rds")  
 }
 
