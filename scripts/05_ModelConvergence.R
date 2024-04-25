@@ -23,10 +23,13 @@ mutate(cluster = as.factor(ifelse(cluster_status=='clusterInitial', "initial", i
 	      cluster_status=='noCluster', 'single', 'nonInitial'))),
        word_initial=as.factor(word_initial),
        utt_initial=as.factor(word_initial),
-       IPA=CLTS) %>% 
-  sample_frac(0.5)
+       IPA=CLTS)
 
 model <- readRDS(file="models/cl_Speaker.rds")
+languages <- unique(data$Language)
+
+
+
 # 
 # #########################################
 # ###     model convergence             ###
@@ -111,14 +114,19 @@ model <- readRDS(file="models/cl_Speaker.rds")
 #########################################
 ### Using epreds
 if (file.exists("models/pred_expected.rds")) {
-  epreds <- readRDS(file="models/pred_expected.rds")
+  e_preds <- readRDS(file="models/pred_expected.rds")
 } else{
   print("Sorry, the file does not yet exist. This may take some time.")
-  epreds <- epred_draws(model, newdata=data, allow_new_levels=TRUE)
-  saveRDS(epreds, file="models/pred_expected.rds")  
+  e_preds <- tibble()
+  for (lang in languages){
+    subdata <- data %>% filter(Language==lang)
+    sub_epreds <- epred_draws(model, newdata=subdata, allow_new_levels=TRUE)
+    e_preds <- rbind(e_preds, sub_epreds)
+  }
+  saveRDS(e_preds, file="models/pred_expected.rds")  
 }
 
-plot_expected <- epreds %>% 
+plot_expected <- e_preds %>% 
   ggplot(aes(y=.epred, x=initial)) +
   geom_violin(aes(fill=initial)) +
   geom_boxplot(width=0.5, 
@@ -142,7 +150,14 @@ if (file.exists("models/pred_predicted.rds")) {
   m_preds <- readRDS(file="models/pred_predicted.rds")
 } else{
   print("Sorry, the file does not yet exist. This may take some time.")
-  m_preds <- predicted_draws(model, newdata=data, allow_new_levels=TRUE)
+  
+  # Loop through languages for posterior prediction
+  m_preds <- tibble()
+  for (lang in languages){
+    subdata <- data %>% filter(Language==lang)
+    sub_preds <- predicted_draws(model, newdata=subdata, allow_new_levels=TRUE)
+    m_preds <- rbind(m_preds, sub_preds)
+  }
   saveRDS(m_preds, file="models/pred_predicted.rds")  
 }
 
@@ -166,14 +181,20 @@ ggsave(plot_preds, filename='images/viz_post_predicted.png',
 
 # Using fitted
 if (file.exists("models/pred_fitted.rds")) {
-  m_fit <- readRDS(file="models/pred_fitted.rds")
+  m_fitted <- readRDS(file="models/pred_fitted.rds")
 } else{
   print("Sorry, the file does not yet exist. This may take some time.")
-  m_fit <- fitted(model, summary=TRUE, newdata=data, allow_new_levels=TRUE)
-  saveRDS(m_fit, file="models/pred_fitted.rds")  
+  
+  m_fitted <- tibble()
+  for (lang in languages){
+    subdata <- data %>% filter(Language==lang)
+    sub_fit <- fitted(model, summary=TRUE, newdata=data, allow_new_levels=TRUE)
+    m_fitted <- rbind(m_fitted, sub_fit)
+  }
+  saveRDS(m_fitted, file="models/pred_fitted.rds")  
 }
 
-comb <- cbind(data, m_fit)
+comb <- cbind(data, m_fitted)
 
 plot_fit <- comb %>% 
   ggplot(aes(y=Estimate, x=initial)) +
@@ -195,17 +216,22 @@ ggsave(plot_fit, filename='images/viz_post_fit.png',
 
 
 # Using fitted
-if (file.exists("models/pred_fitted.rds")) {
-  m_fit <- readRDS(file="models/pred_fitted.rds")
+if (file.exists("models/pred_fitted2.rds")) {
+  m_fit <- readRDS(file="models/pred_fitted2.rds")
 } else{
   print("Sorry, the file does not yet exist. This may take some time.")
-  m_fit <- fitted(model, summary=FALSE, newdata=data, allow_new_levels=TRUE)
-  saveRDS(m_fit, file="models/pred_fitted.rds")  
+  m_fit <- tibble()
+  for (lang in languages){
+    subdata <- data %>% filter(Language==lang)
+    sub_fit <- fitted(model, summary=FALSE, newdata=data, allow_new_levels=TRUE)
+    m_fit <- rbind(m_fit, sub_fit)
+  }
+  saveRDS(m_fit, file="models/pred_fitted2.rds") 
 }
 
-comb <- cbind(data, m_fit)
+comb2 <- cbind(data, m_fit)
 
-plot_fit <- comb %>% 
+plot_fit <- comb2 %>% 
   ggplot(aes(y=Estimate, x=initial)) +
   geom_violin(aes(fill=initial)) +
   geom_boxplot(width=0.5, 
@@ -224,11 +250,16 @@ ggsave(plot_fit, filename='images/viz_post_fit2.png',
        width=1600, height=2300, units="px")
 
 if (file.exists("models/pred_post.rds")) {
-  sim_data <- readRDS(file="models/pred_post.rds")
+  m_post <- readRDS(file="models/pred_post.rds")
 } else{
   print("Sorry, the file does not yet exist. This may take some time.")
-  sim_data <- posterior_predict(model, ndraws=4, cores=getOption("mc.cores", 4), allow_new_levels=TRUE)
-  saveRDS(sim_data, file="models/pred_post.rds")  
+  m_post <- tibble()
+  for (lang in languages){
+    subdata <- data %>% filter(Language==lang)
+    sub_post <- posterior_predict(model, newdata=subdata, ndraws=4, cores=getOption("mc.cores", 4), allow_new_levels=TRUE)
+    m_post <- rbind(m_post, sub_post)
+  }
+  saveRDS(m_post, file="models/pred_post.rds")  
 }
 
 duration_vals <- data %>% pull(Duration)
