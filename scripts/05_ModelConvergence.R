@@ -23,7 +23,8 @@ mutate(cluster = as.factor(ifelse(cluster_status=='clusterInitial', "initial", i
 	      cluster_status=='noCluster', 'single', 'nonInitial'))),
        word_initial=as.factor(word_initial),
        utt_initial=as.factor(word_initial),
-       IPA=CLTS)
+       IPA=CLTS) %>% 
+  sample_frac(0.01)
 
 model <- readRDS(file="models/cl_Speaker.rds")
 # 
@@ -126,7 +127,7 @@ plot_expected <- epreds %>%
   # following line and set ncol=n according to your needs.
   # facet_wrap(~Language, ncol=4) +
   scale_fill_viridis(discrete=TRUE, end=0.7) +
-  scale_y_log10(limits=c(5, 500), breaks=c(10, 20, 30, 70, 150, 300, 500), 
+  scale_y_log10(limits=c(5, 700), breaks=c(10, 20, 50, 70, 150, 300, 500), 
                 name="duration on log-axis") +
   scale_x_discrete(label=NULL, name=NULL) +
   theme_grey(base_size=11) +
