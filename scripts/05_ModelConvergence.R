@@ -24,7 +24,7 @@ mutate(cluster = as.factor(ifelse(cluster_status=='clusterInitial', "initial", i
        word_initial=as.factor(word_initial),
        utt_initial=as.factor(word_initial),
        IPA=CLTS) %>% 
-  sample_frac(0.01)
+  sample_frac(0.5)
 
 model <- readRDS(file="models/cl_Speaker.rds")
 # 
