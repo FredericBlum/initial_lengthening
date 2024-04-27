@@ -7,4 +7,4 @@
 #SBATCH --partition dlcegpu
 #SBATCH -w dlcenode01
 
-xvfb-run Rscript --verbose 07_moran.R
+Rscript --verbose 07_moran.R
