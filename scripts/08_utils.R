@@ -57,10 +57,18 @@ print(xtable(data_table), include.rownames=FALSE)
 ################################################
 #####             Random statistics         ####
 ################################################
+# Mean duration in different positions
 data %>% 
   # Comment out for overall mean
   group_by(initial) %>%
   summarize(mean = mean(Duration))
+
+# Data points per language
+data %>% 
+  # Comment out for overall mean
+  group_by(Language) %>%
+  count() %>% arrange(n)
+
 
 
 ################################################
