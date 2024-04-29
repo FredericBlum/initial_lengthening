@@ -1,13 +1,8 @@
 running
-  '/data/tools/r/R-4.2.0/bin/R --no-echo --no-restore --file=07_moran.R'
+  '/data/tools/r/R-4.2.0/bin/R --no-echo --no-restore --file=05_ModelConvergence.R'
 
-This is geostan version 0.5.4
 
 Attaching package: ‘dplyr’
-
-The following object is masked from ‘package:gridExtra’:
-
-    combine
 
 The following objects are masked from ‘package:stats’:
 
@@ -17,6 +12,31 @@ The following objects are masked from ‘package:base’:
 
     intersect, setdiff, setequal, union
 
+This is posterior version 1.5.0
+
+Attaching package: ‘posterior’
+
+The following objects are masked from ‘package:stats’:
+
+    mad, sd, var
+
+The following objects are masked from ‘package:base’:
+
+    %in%, match
+
+This is bayesplot version 1.11.1
+- Online documentation and vignettes at mc-stan.org/bayesplot
+- bayesplot theme set to bayesplot::theme_default()
+   * Does _not_ affect other ggplot2 plots
+   * See ?bayesplot_theme_set for details on theme setting
+
+Attaching package: ‘bayesplot’
+
+The following object is masked from ‘package:posterior’:
+
+    rhat
+
+Loading required package: viridisLite
 Loading required package: Rcpp
 Loading 'brms' package (version 2.19.0). Useful instructions
 can be found by typing help('brms'). A more detailed introduction
@@ -24,23 +44,18 @@ to the package is available through vignette('brms_overview').
 
 Attaching package: ‘brms’
 
-The following objects are masked from ‘package:geostan’:
+The following objects are masked from ‘package:tidybayes’:
 
-    gr, posterior_predict, waic
+    dstudent_t, pstudent_t, qstudent_t, rstudent_t
+
+The following object is masked from ‘package:bayesplot’:
+
+    rhat
 
 The following object is masked from ‘package:stats’:
 
     ar
 
-Rows: 51 Columns: 15
-── Column specification ────────────────────────────────────────────────────────
-Delimiter: ","
-chr (12): ID, Name, Macroarea, Glottocode, Source, family_id, parent_id, nam...
-dbl  (2): Latitude, Longitude
-lgl  (1): ISO639P3code
-
-ℹ Use `spec()` to retrieve the full column specification for this data.
-ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
 Rows: 874627 Columns: 13
 ── Column specification ────────────────────────────────────────────────────────
 Delimiter: "\t"
@@ -49,6 +64,3 @@ dbl (6): Duration, utt_initial, word_initial, z_num_phones, z_speech_rate, z...
 
 ℹ Use `spec()` to retrieve the full column specification for this data.
 ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
-Saving 7 x 7 in image
-Saving 7 x 7 in image
-slurmstepd-dlcenode01: error: *** JOB 8542 ON dlcenode01 CANCELLED AT 2024-04-25T11:55:10 ***
