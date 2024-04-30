@@ -27,7 +27,7 @@ mutate(cluster = as.factor(ifelse(cluster_status=='clusterInitial', "initial", i
        IPA=CLTS)
 
 model <- readRDS(file="models/cl_Speaker.rds")
-languages <- unique(data$Speaker)
+languages <- unique(data$Language)
 
 
 # #########################################
@@ -112,44 +112,43 @@ languages <- unique(data$Speaker)
 # Run fitted model predictions
 #########################################
 ### Using epreds
-#if (file.exists("models/pred_expected.rds")) {
-#  e_preds <- readRDS(file="models/pred_expected.rds")
-#} else{
-#  print("Sorry, the file does not yet exist. This may take some time.")
-#  e_preds <- tibble()
-#  for (lang in languages){
-#    subdata <- data %>% filter(Language==lang)
-#    write(c(lang,  length(subdata)), stderr())
-#
-#    sub_epreds <- epred_draws(model, newdata=subdata, allow_new_levels=TRUE, ndraws=draws)
-#    write(head(sub_epreds), stderr())
-#
-#    e_preds <- rbind(e_preds, sub_epreds)
-#    write(format(object.size(e_preds), units="auto"), stderr())
-#    write('---', stderr())
-#  }
-#  saveRDS(e_preds, file="models/pred_expected.rds")  
-#}
-#
-#
-#plot_expected <- e_preds %>% 
-#  ggplot(aes(y=.epred, x=initial)) +
-#  geom_violin(aes(fill=initial)) +
-#  geom_boxplot(width=0.5, 
-#               outlier.size=1, outlier.color="black", outlier.alpha=0.3) +
-#  # If you want to plot the distribution across all languages, uncomment the
-#  # following line and set ncol=n according to your needs.
-#  # facet_wrap(~Language, ncol=4) +
-#  scale_fill_viridis(discrete=TRUE, end=0.7) +
-#  scale_y_log10(limits=c(5, 700), breaks=c(10, 20, 50, 70, 150, 300, 500), 
-#                name="duration on log-axis") +
-#  scale_x_discrete(label=NULL, name=NULL) +
-#  theme_grey(base_size=11) +
-#  theme(legend.position='bottom', legend.title=element_blank())
-#
-#ggsave(plot_expected, filename='images/viz_post_expected.png', 
-#       width=1600, height=2300, units="px")
-#
+if (file.exists("models/pred_expected.rds")) {
+ e_preds <- readRDS(file="models/pred_expected.rds")
+} else{
+ print("Sorry, the file does not yet exist. This may take some time.")
+ e_preds <- tibble()
+ for (lang in languages){
+   subdata <- data %>% filter(Language==lang)
+   write(c(lang,  length(subdata)), stdout())
+
+   sub_epreds <- epred_draws(model, newdata=subdata, allow_new_levels=TRUE, ndraws=draws) %>%
+ 	    ungroup() %>% select(ID, Language, Duration, utt_initial, word_initial, initial, .epred)
+   e_preds <- rbind(e_preds, sub_epreds)
+   write(format(object.size(e_preds), units="auto"), stdout())
+   write('------------------', stdout())
+ }
+ saveRDS(e_preds, file="models/pred_expected.rds")  
+}
+
+
+plot_expected <- e_preds %>% 
+ ggplot(aes(y=.epred, x=initial)) +
+ geom_violin(aes(fill=initial)) +
+ geom_boxplot(width=0.5, 
+              outlier.size=1, outlier.color="black", outlier.alpha=0.3) +
+ # If you want to plot the distribution across all languages, uncomment the
+ # following line and set ncol=n according to your needs.
+ # facet_wrap(~Language, ncol=4) +
+ scale_fill_viridis(discrete=TRUE, end=0.7) +
+ scale_y_log10(limits=c(5, 700), breaks=c(10, 20, 50, 70, 150, 300, 500), 
+               name="duration on log-axis") +
+ scale_x_discrete(label=NULL, name=NULL) +
+ theme_grey(base_size=11) +
+ theme(legend.position='bottom', legend.title=element_blank())
+
+ggsave(plot_expected, filename='images/viz_post_expected.png', 
+      width=1600, height=2300, units="px")
+
 #########################################
 # Using posterior_draws from tidybayes
 if (file.exists("models/pred_predicted.rds")) {
@@ -159,7 +158,7 @@ if (file.exists("models/pred_predicted.rds")) {
  # Loop through languages for posterior prediction
  m_preds <- tibble()
  for (lang in languages){
- 	  subdata <- data %>% filter(Speaker==lang)
+ 	  subdata <- data %>% filter(Language==lang)
  	  write(lang, stderr())
  	  write(nrow(subdata), stderr())
  	  
@@ -200,7 +199,7 @@ if (file.exists("models/pred_fitted.rds")) {
   
   m_fitted <- tibble()
   for (lang in languages){
-    subdata <- data %>% filter(Speaker==lang)
+    subdata <- data %>% filter(Language==lang)
     sub_fit <- fitted(model, summary=TRUE, newdata=data, allow_new_levels=TRUE, ndraws=draws)
     m_fitted <- rbind(m_fitted, sub_fit)
   }
@@ -235,7 +234,7 @@ if (file.exists("models/pred_fitted2.rds")) {
   print("Sorry, the file does not yet exist. This may take some time.")
   m_fit <- tibble()
   for (lang in languages){
-    subdata <- data %>% filter(Speaker==lang)
+    subdata <- data %>% filter(Language==lang)
     sub_fit <- fitted(model, summary=FALSE, newdata=data, allow_new_levels=TRUE, ndraws=draws)
     m_fit <- rbind(m_fit, sub_fit)
   }
