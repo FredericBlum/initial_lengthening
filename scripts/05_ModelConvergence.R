@@ -8,7 +8,7 @@ library(viridis)
 library(tidybayes)
 library(brms)
 
-draws <- 1
+draws <- 10
 options(bitmapType="cairo")
 
 color_scheme_set("pink")
@@ -120,11 +120,18 @@ if (file.exists("models/pred_expected.rds")) {
   e_preds <- tibble()
   for (lang in languages){
     subdata <- data %>% filter(Language==lang)
+    write(c(lang,  length(subdata)), stderr())
+
     sub_epreds <- epred_draws(model, newdata=subdata, allow_new_levels=TRUE, ndraws=draws)
+    write(head(sub_epreds), stderr())
+
     e_preds <- rbind(e_preds, sub_epreds)
+    write(format(object.size(e_preds), units="auto"), stderr())
+    write('---', stderr())
   }
   saveRDS(e_preds, file="models/pred_expected.rds")  
 }
+
 
 plot_expected <- e_preds %>% 
   ggplot(aes(y=.epred, x=initial)) +
@@ -153,10 +160,16 @@ if (file.exists("models/pred_predicted.rds")) {
  # Loop through languages for posterior prediction
  m_preds <- tibble()
  for (lang in languages){
-  print(lang)
-   	  subdata <- data %>% filter(Speaker==lang)
-   	  sub_preds <- predicted_draws(model, newdata=subdata, allow_new_levels=TRUE, ndraws=draws)
-   	  m_preds <- rbind(m_preds, sub_preds)
+ 	  subdata <- data %>% filter(Speaker==lang)
+ 	  write(c(lang,  length(subdata)), stderr())
+ 	  
+ 	  sub_preds <- predicted_draws(model, newdata=subdata, allow_new_levels=TRUE, ndraws=draws)
+ 	  write(head(sub_preds), stderr())
+ 	  
+ 	  m_preds <- rbind(m_preds, sub_preds)
+ 	  write(format(object.size(m_preds), units="auto"), stderr())
+ 	  write('---', stderr())
+ 	  
  }
  saveRDS(m_preds, file="models/pred_predicted.rds")
 }
