@@ -8,7 +8,7 @@ library(viridis)
 library(tidybayes)
 library(brms)
 
-draws <- 5
+draws <- 100
 options(bitmapType="cairo")
 
 color_scheme_set("pink")
@@ -30,7 +30,6 @@ model <- readRDS(file="models/cl_Speaker.rds")
 languages <- unique(data$Speaker)
 
 
-# 
 # #########################################
 # ###     model convergence             ###
 # #########################################
@@ -165,7 +164,7 @@ if (file.exists("models/pred_predicted.rds")) {
  	  write(nrow(subdata), stderr())
  	  
  	  sub_preds <- predicted_draws(model, newdata=subdata, allow_new_levels=TRUE, ndraws=draws) %>%
- 	    ungroup() %>% select(ID, Language, Duration, utt_initial, word_initial, .prediction)
+ 	    ungroup() %>% select(ID, Language, Duration, utt_initial, word_initial, initial, .prediction)
  	  m_preds <- rbind(m_preds, sub_preds)
 
  	  write(format(object.size(m_preds), units="auto"), stderr())
