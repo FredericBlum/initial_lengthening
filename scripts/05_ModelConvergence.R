@@ -162,12 +162,13 @@ if (file.exists("models/pred_predicted.rds")) {
  for (lang in languages){
  	  subdata <- data %>% filter(Speaker==lang)
  	  write(lang, stderr())
- 	  write(length(subdata), stderr())
+ 	  write(nrow(subdata), stderr())
  	  
  	  sub_preds <- predicted_draws(model, newdata=subdata, allow_new_levels=TRUE, ndraws=draws)
  	 #  write(head(sub_preds), stderr())
- 	  
- 	  m_preds <- rbind(m_preds, sub_preds)
+ 	  reduced <- sub_preds %>% select(ID, Language, Duration, utt_initial, word_initial, .prediction)
+ 	  m_preds <- rbind(m_preds, reduced)
+
  	  write(format(object.size(m_preds), units="auto"), stderr())
  	  write('---', stderr())
  	  
