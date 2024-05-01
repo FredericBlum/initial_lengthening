@@ -119,7 +119,8 @@ if (file.exists("models/pred_expected.rds")) {
  e_preds <- tibble()
  for (lang in languages){
    subdata <- data %>% filter(Language==lang)
-   write(c(lang,  length(subdata)), stdout())
+   write(lang, stdout())
+   write(nrow(subdata), stdout())
 
    sub_epreds <- epred_draws(model, newdata=subdata, allow_new_levels=TRUE, ndraws=draws) %>%
  	    ungroup() %>% select(ID, Language, Duration, utt_initial, word_initial, initial, .epred)
