@@ -7,4 +7,4 @@
 #SBATCH --partition dlcegpu
 #SBATCH -w dlcenode01
 
-Rscript --verbose 05_ModelConvergence.R
+Rscript --no-save --no-restore --verbose 05_ModelConvergence.R 
