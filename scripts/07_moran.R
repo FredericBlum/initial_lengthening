@@ -38,7 +38,7 @@ for (region in regions) {
 
 ########################
 # Load model and compute residuals
-model <- readRDS(file="models/cl_Speaker.rds")
+model <- readRDS(file="models/cl_speakerGamma.rds")
 
 resName <- 'model/res.rds'
 if (file.exists(resName)) {

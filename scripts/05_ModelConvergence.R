@@ -11,7 +11,7 @@ library(brms)
 draws <- 100
 options(bitmapType="cairo")
 
-color_scheme_set("pink")
+color_scheme_set("purple")
 
 data <- read_tsv('data.tsv') %>% 
   mutate(
@@ -19,94 +19,87 @@ data <- read_tsv('data.tsv') %>%
       utt_initial==1, "utterance-initial", ifelse(
         word_initial==1, "word-initial", "other"
       ))
-  )) %>%
-mutate(cluster = as.factor(ifelse(cluster_status=='clusterInitial', "initial", ifelse(
-	      cluster_status=='noCluster', 'single', 'nonInitial'))),
-       word_initial=as.factor(word_initial),
-       utt_initial=as.factor(word_initial),
-       IPA=CLTS)
+  ))
 
-model <- readRDS(file="models/cl_Speaker.rds")
+model <- readRDS(file="models/cl_speakerGamma.rds")
 languages <- unique(data$Language)
 
 
-# #########################################
-# ###     model convergence             ###
-# #########################################
-# lp_max <- log_posterior(model)
-# np_max <- nuts_params(model)
-# posterior_max <- as.array(model)
-# 
-# # mcmc_pairs: up to 8 parameters, divergent transitions and collinearity between parameters
-# pred_pairs <- mcmc_pairs(posterior_max, np=np_max,
-#                          pars=c(
-#                            'b_Intercept', 'b_z_word_freq', 'b_z_num_phones',
-#                            'b_word_initial1', 'b_utt_initial1', 'shape'
-#                            ), 
-#                          off_diag_args=list(size=0.75))
-# 
-# diver_scatter <- mcmc_scatter(posterior_max, np=np_max, pars=c('b_Intercept', 'shape'))
-# ggsave('images/viz_pairsPred.png', pred_pairs, scale=1.3,
-#        width=3000, height=2800, units="px")
-# 
-# zipfs_pairs <- mcmc_pairs(posterior_max, np=np_max, regex_pars=c("^b_z_"), 
-#                          off_diag_args=list(size=0.75))
-# 
-# ggsave('images/viz_pairsPredz.png', zipfs_pairs, scale=1.3,
-#        width=3000, height=2800, units="px")
-# 
-# collinearity_pred <- as_draws_df(model) %>% 
-#   select(b_z_num_phones:b_z_word_freq) %>% 
-#   cor()
-# 
-# print(paste(
-#   "The correlation between word form frequenzy and number of phones per word is",
-#   round(collinearity_pred[1,2], 2)
-#   ))
-# 
-# # trank plots for intercept and sigma
-# both_traces <- mcmc_trace(posterior_max, pars=c("b_Intercept", "shape"), 
-#                           facet_args=list(ncol=2, strip.position="left")) +
-#   theme(legend.position="none")
-# 
-# both_ranks <- mcmc_rank_overlay(posterior_max, pars=c("b_Intercept", "shape"), 
-#                                 facet_args=list(ncol=2, strip.position="left")) +
-#   # coord_cartesian(ylim=c(0, 200)) + 
-#   theme(legend.position="none")
-# 
-# eval_chains <- (both_traces /  both_ranks)
-# 
-# ggsave('images/eval_chains.png', eval_chains, scale=1)
-# 
-# ########################################
-# rhats_max <- brms::rhat(model)
-# rhat_all <- mcmc_rhat(rhats_max) + xlab("R-hat value") +
-#   scale_x_continuous(breaks=c(1.0, 1.005, 1.01), limits=c(1, 1.01)) +
-#   theme(legend.position="none")
-# 
-# rhat_val <- rhats_max[lapply(rhats_max, as.numeric) > 1.004]
-# rhat_filter <- mcmc_rhat(rhat_val) + yaxis_text(hjust=1) +
-#   scale_x_continuous(breaks=c(1, 1.005, 1.01), limits=c(1, 1.015)) +
-#   theme(legend.position="none")
-# 
-# ###########################################
-# neff_max <- neff_ratio(model)
-# neff_all_plot <- mcmc_neff(neff_max, size=2) + 
-#   scale_x_continuous(breaks=c(0, 0.5, 1)) +
-#   xlab("Effective sample size")  +
-#   theme(legend.position="none")
-# 
-# neff_filter <- neff_max[lapply(neff_max, as.numeric) < 0.15]
-# neff_fil_plot <- mcmc_neff(neff_filter, size=2) + yaxis_text(hjust=1) + 
-#   scale_x_continuous(breaks=c(0.1, 0.2), limits=c(0, 0.2))  +
-#   theme(legend.position="none")
-# 
-# rhat_neff_plot <- (rhat_all + rhat_filter) / (neff_all_plot + neff_fil_plot)
-# ggsave('images/eval_rhat_neff.png', rhat_neff_plot, scale=1)
+#########################################
+###     model convergence             ###
+#########################################
+lp_max <- log_posterior(model)
+np_max <- nuts_params(model)
+posterior_max <- as.array(model)
 
-#########################################
-###     posterior predictive checks   ###
-#########################################
+# mcmc_pairs: up to 8 parameters, divergent transitions and collinearity between parameters
+pred_pairs <- mcmc_pairs(posterior_max, np=np_max,
+                         pars=c(
+                           'b_Intercept', 'b_z_word_freq', 'b_z_num_phones',
+                           'b_word_initial', 'b_utt_initial', 'shape'
+                           ),
+                         off_diag_args=list(size=0.75))
+
+ggsave('images/viz_pairsPred.png', pred_pairs, scale=1.3,
+       width=3000, height=2800, units="px")
+
+zipfs_pairs <- mcmc_pairs(posterior_max, np=np_max, regex_pars=c("^b_z_"),
+                         off_diag_args=list(size=0.75))
+
+ggsave('images/viz_pairsPredz.png', zipfs_pairs, scale=1.3,
+       width=3000, height=2800, units="px")
+
+# Plot divergent transitions for two parameters
+diver_scatter <- mcmc_scatter(posterior_max, np=np_max, pars=c('b_Intercept', 'shape'))
+
+collinearity_pred <- as_draws_df(model) %>%
+  select(b_z_num_phones:b_z_word_freq) %>%
+  cor()
+
+print(paste(
+  "The correlation between word form frequenzy and number of phones per word is",
+  round(collinearity_pred[1,2], 2)
+  ))
+
+# trank plots for intercept and sigma
+both_traces <- mcmc_trace(posterior_max, pars=c("b_Intercept", "shape"),
+                          facet_args=list(ncol=2, strip.position="left")) +
+  theme(legend.position="none")
+
+both_ranks <- mcmc_rank_overlay(posterior_max, pars=c("b_Intercept", "shape"),
+                                facet_args=list(ncol=2, strip.position="left")) +
+  # coord_cartesian(ylim=c(0, 200)) +
+  theme(legend.position="none")
+
+eval_chains <- (both_traces /  both_ranks)
+
+ggsave('images/eval_chains.png', eval_chains, scale=1)
+
+########################################
+rhats_max <- brms::rhat(model)
+rhat_all <- mcmc_rhat(rhats_max) + xlab("R-hat value") +
+  scale_x_continuous(breaks=c(1.0, 1.05, 1.01), limits=c(1, 1.01)) +
+  theme(legend.position="none")
+
+rhat_val <- rhats_max[lapply(rhats_max, as.numeric) > 1.025]
+rhat_filter <- mcmc_rhat(rhat_val) + yaxis_text(hjust=1) +
+  scale_x_continuous(breaks=c(1, 1.005, 1.01), limits=c(1, 1.015)) +
+  theme(legend.position="none")
+
+###########################################
+neff_max <- neff_ratio(model)
+neff_all_plot <- mcmc_neff(neff_max, size=2) +
+  scale_x_continuous(breaks=c(0, 0.5, 1)) +
+  xlab("Effective sample size")  +
+  theme(legend.position="none")
+
+neff_filter <- neff_max[lapply(neff_max, as.numeric) < 0.05]
+neff_fil_plot <- mcmc_neff(neff_filter, size=2) + yaxis_text(hjust=1) +
+  scale_x_continuous(breaks=c(0.1, 0.2), limits=c(0, 0.2))  +
+  theme(legend.position="none")
+
+rhat_neff_plot <- (rhat_all + rhat_filter) / (neff_all_plot + neff_fil_plot)
+ggsave('images/eval_rhat_neff.png', rhat_neff_plot, scale=1)
 
 #########################################
 # Run fitted model predictions
@@ -122,7 +115,7 @@ if (file.exists("models/pred_expected.rds")) {
    write(lang, stdout())
    write(nrow(subdata), stdout())
 
-   sub_epreds <- epred_draws(model, newdata=subdata, allow_new_levels=TRUE, ndraws=draws) %>%
+   sub_epreds <- epred_draws(model, newdata=subdata, ndraws=draws) %>%
  	    ungroup() %>% select(ID, Language, Duration, utt_initial, word_initial, initial, .epred)
    e_preds <- rbind(e_preds, sub_epreds)
    write(format(object.size(e_preds), units="auto"), stdout())
@@ -131,6 +124,8 @@ if (file.exists("models/pred_expected.rds")) {
  saveRDS(e_preds, file="models/pred_expected.rds")  
 }
 
+avg <- e_preds %>% group_by(initial) %>% summarise(mean=mean(.epred))
+write(avg, stdout())
 
 plot_expected <- e_preds %>% 
  ggplot(aes(y=.epred, x=initial)) +
@@ -163,7 +158,7 @@ if (file.exists("models/pred_predicted.rds")) {
  	  write(lang, stderr())
  	  write(nrow(subdata), stderr())
  	  
- 	  sub_preds <- predicted_draws(model, newdata=subdata, allow_new_levels=TRUE, ndraws=draws) %>%
+ 	  sub_preds <- predicted_draws(model, newdata=subdata, ndraws=draws) %>%
  	    ungroup() %>% select(ID, Language, Duration, utt_initial, word_initial, initial, .prediction)
  	  m_preds <- rbind(m_preds, sub_preds)
 
@@ -201,7 +196,7 @@ if (file.exists("models/pred_fitted.rds")) {
   m_fitted <- tibble()
   for (lang in languages){
     subdata <- data %>% filter(Language==lang)
-    sub_fit <- fitted(model, summary=TRUE, newdata=data, allow_new_levels=TRUE, ndraws=draws)
+    sub_fit <- fitted(model, summary=TRUE, newdata=data, ndraws=draws)
     m_fitted <- rbind(m_fitted, sub_fit)
   }
   saveRDS(m_fitted, file="models/pred_fitted.rds")  
@@ -236,7 +231,7 @@ if (file.exists("models/pred_fitted2.rds")) {
   m_fit <- tibble()
   for (lang in languages){
     subdata <- data %>% filter(Language==lang)
-    sub_fit <- fitted(model, summary=FALSE, newdata=data, allow_new_levels=TRUE, ndraws=draws)
+    sub_fit <- fitted(model, summary=FALSE, newdata=data, ndraws=draws)
     m_fit <- rbind(m_fit, sub_fit)
   }
   saveRDS(m_fit, file="models/pred_fitted2.rds") 
@@ -269,7 +264,7 @@ if (file.exists("models/pred_post.rds")) {
   m_post <- tibble()
   for (lang in languages){
     subdata <- data %>% filter(Language==lang)
-    sub_post <- posterior_predict(model, newdata=subdata, ndraws=draws, cores=getOption("mc.cores", 4), allow_new_levels=TRUE)
+    sub_post <- posterior_predict(model, newdata=subdata, ndraws=draws, cores=getOption("mc.cores", 4))
     m_post <- rbind(m_post, sub_post)
   }
   saveRDS(m_post, file="models/pred_post.rds")  

@@ -31,17 +31,17 @@ predictors <- tibble(x=c(rnorm(n, 0, 0.3))) %>%
 #########################################
 
 # values for intercept
-int_vals <- c(rnorm(n, mean=4.5, sd=0.1)) 
-int_vals %>% tibble() %>% ggplot(aes(x=.)) + geom_density()
+int_vals <- c(rnorm(n, mean=4.4, sd=0.05)) 
+int_vals %>% tibble() %>% ggplot(aes(x=exp(.))) + geom_density()
 
 # sigma for intercept
-sigma1 <- rexp(n, rate=15)
+sigma1 <- rgamma(n, shape=rnorm(n, 6, 0.5))
 sigma1 %>% tibble() %>% ggplot(aes(x=.))+ geom_density()
 
 # combination of both
 sample_ints <- tibble(x=c(rgamma(n, 
                                   meanlog=int_vals, 
-                                  sdlog=sigma1))) %>%
+                                  shape=sigma1))) %>%
   mutate(group='alpha%~% logn( Normal(4.5, 0.1), exp(12) )') %>% 
   ggplot(aes(fill=group)) +
   geom_density(aes(x=x)) +
@@ -73,7 +73,7 @@ sigma2 <- rexp(n, rate=15) %>%
         plot.title=element_text(size=14)) +  
   labs(title="σ ~ Exp(12)")
 
-rgamma(n, 3, 30) %>% 
+rgamma(n, 2, 30) %>% 
   tibble() %>% 
   mutate(group='sigma%~% exp(12)') %>% 
   ggplot(aes(x=.)) + 

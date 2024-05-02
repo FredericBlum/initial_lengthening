@@ -29,7 +29,7 @@ You can now run the download and the conversion to CLDF. While downloading, inse
 
 ```bash
 cldfbench download cldfbench_doreco.py
-cldfbench makecldf cldfbench_doreco.py --glottolog-version v4.8
+cldfbench makecldf cldfbench_doreco.py --glottolog-version v5.0
 ```
 
 The last step created a SQLite database out of the CLDF data, to quickly access all the data. Once you have the SQLite database ready, you need to install the pre-written views. Run SQL:
