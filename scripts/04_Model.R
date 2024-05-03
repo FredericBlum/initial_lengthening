@@ -19,11 +19,12 @@ model <-
         (1 + utt_initial + word_initial | CLTS) +
         (1 | Family) +
         z_num_phones + z_word_freq + z_speech_rate,
-      prior=c(prior(normal(4.4, 0.05), class=Intercept),
-              prior(normal(6, 0.5), class=shape),
-              prior(normal(0, 0.3), class=b),
-              prior(gamma(3, 30), class=sd),
-              prior(lkj(5), class=cor)
+      prior=c(
+        prior(normal(4.4, 0.05), class=Intercept),
+        prior(normal(6, 0.5), class=shape),
+        prior(normal(0, 0.3), class=b),
+        prior(gamma(3, 30), class=sd),
+        prior(lkj(5), class=cor)
       ),
       iter=7500, warmup=2500, chains=4, cores=4,
       threads=threading(3),

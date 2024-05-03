@@ -10,14 +10,11 @@ library(viridis)
 ###       Data                  ###
 ###################################
 data <- read_tsv('data.tsv') %>% mutate(
-  initial=ifelse(
-    utt_initial==1, "utterance-initial", ifelse(
-      word_initial==1, "word-initial", "other"
-      )))
+  initial=ifelse(utt_initial==1, "utterance-initial", ifelse(word_initial==1, "word-initial", "other")))
 
 langs <- data %>% group_by(Language) %>% count() %>% arrange(Language)
 phons <- data %>% group_by(Language, Value) %>% count() %>% arrange(n)
-cons <- data %>% group_by(sound_class, utt_initial) %>% count() %>% arrange(n)
+cons <- data %>% group_by(CLTS, initial) %>% count() %>% arrange(n)
 
 ################################################
 #####       Distribution Plots             #####
@@ -49,8 +46,7 @@ non_tens <- data %>%
   ylab("Occurrences") + xlab("duration on log-axis")
 
 distr <- (tens / non_tens) + plot_layout(guides="collect") & theme(legend.position="bottom")
-ggsave("images/dataExpl_distr.png", distr, scale=1,
-       width=2000, height=2000, units="px")
+ggsave("images/dataExpl_distr.png", distr, scale=1, width=2000, height=2000, units="px")
 
 dens_all <- data %>%
   ggplot(aes(x=initial, y=Duration, color=initial, fill=initial)) +
@@ -65,8 +61,7 @@ dens_all <- data %>%
   scale_x_discrete(labels=c("non-initial", "utterance-initial", "word-initial"))+
   xlab("") + theme(legend.position="none")
 
-ggsave("images/dataExpl_dens.png", dens_all, scale=1,
-       width=2000, height=1450, units="px")
+ggsave("images/dataExpl_dens.png", dens_all, scale=1, width=2000, height=1450, units="px")
 
 ################################################
 #####       Between-Languages Plots        #####
