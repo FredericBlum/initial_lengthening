@@ -125,7 +125,7 @@ if (file.exists("models/pred_expected.rds")) {
 }
 
 avg <- e_preds %>% group_by(initial) %>% summarise(mean=mean(.epred))
-write(avg, stdout())
+print(avg)
 
 plot_expected <- e_preds %>% 
  ggplot(aes(y=.epred, x=initial)) +
