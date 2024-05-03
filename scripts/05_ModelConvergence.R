@@ -121,7 +121,10 @@ if (file.exists("models/pred_expected.rds")) {
 }
 
 avg <- e_preds %>% group_by(initial) %>% summarise(mean=mean(.epred))
-print(avg, stdout())
+print('#############################')
+print("Average for expected draws:")
+print(avg)
+print('#############################')
 
 plot_expected <- e_preds %>% 
  ggplot(aes(y=.epred, x=initial)) +
@@ -151,19 +154,20 @@ if (file.exists("models/pred_predicted.rds")) {
  m_preds <- tibble()
  for (lang in languages){
  	  subdata <- data %>% filter(Language==lang)
- 	  write(lang, stderr())
- 	  write(nrow(subdata), stderr())
  	  
- 	  sub_preds <- predicted_draws(model, newdata=subdata, ndraws=draws) %>%
+ 	  sub_preds <- subdata %>% add_predicted_draws(model, draws=draws) %>%
  	    ungroup() %>% select(ID, Language, Duration, utt_initial, word_initial, initial, .prediction)
  	  m_preds <- rbind(m_preds, sub_preds)
-
- 	  write(format(object.size(m_preds), units="auto"), stderr())
- 	  write('---', stderr())
- 	  
  }
  saveRDS(m_preds, file="models/pred_predicted.rds")
 }
+
+avg <- m_preds %>% group_by(initial) %>% summarise(mean=mean(.prediction))
+print('#############################')
+print("Average for predicted draws:")
+print(avg)
+print('#############################')
+
 
 plot_preds <- m_preds %>%
  ggplot(aes(y=.prediction, x=initial)) +
@@ -199,6 +203,13 @@ if (file.exists("models/pred_fitted.rds")) {
   saveRDS(m_fitted, file="models/pred_fitted.rds")  
 }
 
+avg <- m_fitted %>% group_by(initial) %>% summarise(mean=mean(.Estimate))
+print('#############################')
+print("Average for fitted draws:")
+print(avg)
+print('#############################')
+
+
 plot_fit <- comb %>% 
   ggplot(aes(y=Estimate, x=initial)) +
   geom_violin(aes(fill=initial)) +
@@ -231,6 +242,13 @@ if (file.exists("models/pred_post.rds")) {
   saveRDS(m_post, file="models/pred_post.rds")  
 }
 
+avg <- m_post %>% group_by(initial) %>% summarise(mean=mean(.Estimate))
+print('#############################')
+print("Average for posterior predicted draws:")
+print(avg)
+print('#############################')
+
+
 duration_vals <- data %>% pull(Duration)
 group_init <- data %>% pull(initial)
 
@@ -258,3 +276,20 @@ violin_comp <- ppc_violin_grouped(duration_vals, sim_data[1:4,], group_init,
 ppc_sum <- (box_comp) / (violin_comp) + plot_layout(guides="collect")
 ggsave('images/eval_ppcsum.png', ppc_sum, width=2000, height=1300, units="px")
 
+plot_fit <- m_post %>% 
+  ggplot(aes(y=Estimate, x=initial)) +
+  geom_violin(aes(fill=initial)) +
+  geom_boxplot(width=0.5, 
+               outlier.size=1, outlier.color="black", outlier.alpha=0.3) +
+  # If you want to plot the distribution across all languages, uncomment the
+  # following line and set ncol=n according to your needs.
+  # facet_wrap(~Language, ncol=4) +
+  scale_fill_viridis(discrete=TRUE, end=0.7) +
+  scale_y_log10(limits=c(5, 500), breaks=c(10, 20, 30, 70, 150, 300, 500), 
+                name="duration on log-axis") +
+  scale_x_discrete(label=NULL, name=NULL) +
+  theme_grey(base_size=11) +
+  theme(legend.position='bottom', legend.title=element_blank())
+
+ggsave(plot_fit, filename='images/viz_post_fit.png', 
+       width=1600, height=2300, units="px")
