@@ -86,7 +86,7 @@ map_doreco <- ggplot() +
   geom_jitter(
     data=languages,
     aes(Longitude, Latitude, fill=Family),
-    height=3, width=3, size=6, shape=21, alpha=0.8
+    height=8, width=3, size=6, shape=21, alpha=0.8
     ) +
   scale_colour_viridis_d() +
   # geom_label_repel(box.padding=0.5, point.padding=0.5,

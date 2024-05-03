@@ -10,67 +10,54 @@ options(bitmapType="cairo")
 
 langs <- read_csv('languages.csv') %>% 
   select(Macroarea, Latitude, Longitude, Glottocode)
+
 data <- read_tsv('data.tsv') %>% 
   left_join(langs, by = join_by(Language==Glottocode)) %>% 
   rename(latitude=Latitude, longitude=Longitude) 
 
-africa <- data %>% filter(Macroarea=='Africa')
-australia <- data %>% filter(Macroarea=='Australia')
-eurasia <- data %>% filter(Macroarea=='Eurasia')
-north_america <- data %>% filter(Macroarea=='North America')
-papunesia <- data %>% filter(Macroarea=='Papunesia')
-south_america <- data %>% filter(Macroarea=='South America')
-
-regions <- list(africa, australia, eurasia, north_america, papunesia, south_america)
+regions <- unique(data$Macroarea)
 
 for (region in regions) {
-  name <- as.character(region[1, 14])
-  region <- region %>% filter(word_initial==1)
-  matrix <- geodist(region, measure='geodesic')
-  
+  name <- as.character(region)
+  subdata <- data %>% filter(Macroarea==region, word_initial==1)
+  matrix <- geodist(subdata, measure='geodesic')
+
   row.names(matrix) <- region$Language
   colnames(matrix) <- region$Language
-  
-  plot <- moran_plot(region$Duration, matrix)
+
+  plot <- moran_plot(subdata$Duration, matrix)
   ggsave(filename=paste0('images/viz_mcData_', name, '.png'), plot)
 }
-
 
 ########################
 # Load model and compute residuals
 model <- readRDS(file="models/cl_speakerGamma.rds")
 
-resName <- 'model/res.rds'
+resName <- 'model/residual_error.rds'
 if (file.exists(resName)) {
   res <- readRDS(file=resName)
 } else{
   print("Sorry, the file does not yet exist. This may take some time.")
-  res <- predictive_error(model, new_data=data)
-  saveRDS(res, file=resName)
+  res <- tibble()
+  for (region in regions){
+    subdata <- data %>% filter(Macroarea==region)
+    sub_res <- predictive_error(model, new_data=subdata, ndraws=100)
+    res <- rbind(res, sub_res)
+  }
+  saveRDS(res, file="models/residual_error.rds")  
 }
 
 # Combine data and residuals
-comb_res <- cbind(data, res) %>% 
-  rename(residual = res) %>%
-  filter(word_initial==1)
-head(comb_res)
-
-africa <- comb_res %>% filter(Macroarea=='Africa')
-australia <- comb_res %>% filter(Macroarea=='Australia')
-eurasia <- comb_res %>% filter(Macroarea=='Eurasia')
-north_america <- comb_res %>% filter(Macroarea=='North America')
-papunesia <- comb_res %>% filter(Macroarea=='Papunesia')
-south_america <- comb_res %>% filter(Macroarea=='South America')
-
-regions <- list(africa, australia, eurasia, north_america, papunesia, south_america)
+comb_res <- cbind(data, res)
 
 for (region in regions) {
-  name <- as.character(region[1, 14])
-  matrix <- geodist(region, measure='geodesic')
+  sub_res <- comb_res %>% filter(Macroarea==region, word_initial==1)
+  name <- as.character(region)
+  matrix <- geodist(sub_res, measure='geodesic')
   
-  row.names(matrix) <- region$Language
-  colnames(matrix) <- region$Language
+  row.names(matrix) <- sub_res$Language
+  colnames(matrix) <- sub_res$Language
   
-  plot <- moran_plot(region$Duration, matrix)
+  plot <- moran_plot(sub_res$res, matrix)
   ggsave(filename=paste0('images/viz_mcResiduals_', name, '.png'), plot)
 }
