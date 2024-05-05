@@ -94,10 +94,13 @@ np_max <- nuts_params(model)
 posterior_max <- as.array(model)
 
 overall_areas <- model %>%
-  mcmc_areas(regex_pars=c('^b_(utt|word)_initial$', 'z_'), prob=0.89, prob_outer=0.997, point_est='mean') +
+  mcmc_areas(regex_pars=c('^b_(utt|word)_initial$', '^b_z_', '^b_cluster_status'), prob=0.89, prob_outer=0.997, point_est='mean') +
   geom_vline(xintercept=0, color='red', alpha=0.5, linewidth=1)+
   annotate('rect', xmin=rope_low, xmax=rope_high, ymin=0, ymax=Inf, alpha=.3) +
-  scale_y_discrete(labels=c('utt-initial','word-initial','speech rate', 'phones per word', 'word-form freq')) +
+  scale_y_discrete(labels=c(
+    'utt-initial','word-initial',
+    'phones per word', 'word-form freq', 'speech rate',
+    'singleton', 'cluster-internal')) +
   scale_x_continuous(name='Effect on log-scale') +
   theme_bw()
 
@@ -122,7 +125,7 @@ word_init <- lang_params %>%
   scale_x_continuous(name=NULL) +
   theme(legend.position='none')
 
-ggsave('images/viz_wordInit_var.png', word_init, width=2000, height=2500, units='px')
+ggsave('images/viz_wordInit.png', word_init, width=2000, height=2500, units='px')
 
 ###################################################################
 utt_init <- lang_params %>%
@@ -192,10 +195,9 @@ ggsave('images/viz_cluster.png', cluster_plot, width=2000, height=2500, units='p
 #########################################
 sc_params <- para_vals %>% 
   filter(grepl('^r_CLTS\\[.*', Parameter)) %>% 
-  filter(str_detect(Parameter, 'word-initial')) %>% 
   mutate(
     Parameter=gsub('^r_CLTS\\[(.*)(,-initial|,)(.*)]','\\1_\\3',Parameter),
-    Parameter=str_replace(Parameter, 'consonant_word-initial', ''),
+    Parameter=str_replace(Parameter, 'consonant', ''),
     CLTS=ifelse(str_detect(Parameter, 'click'), 'click', ifelse(
       str_detect(Parameter, 'stop'), 'stop', ifelse(
         str_detect(Parameter, 'nasal'), 'nasal', ifelse(
@@ -209,7 +211,8 @@ sc_params <- para_vals %>%
     ))))))))))) %>% 
   mutate(outside=ifelse(hpdi_89_high < rope_low, TRUE, ifelse(hpdi_89_low > rope_high, TRUE, FALSE)))
 
-sc_plot <- sc_params %>% 
+sc_plot_utterance<- sc_params %>% 
+  filter(str_detect(Parameter, 'utt-initial')) %>% 
   ggplot(aes(x=reorder(Parameter, Estimate), y=Estimate)) +
   geom_crossbar(
     aes(
@@ -227,9 +230,34 @@ sc_plot <- sc_params %>%
   scale_y_continuous(breaks=c(0.3, 0, -0.3)) +
   scale_alpha(guide='none') +
   facet_wrap(~CLTS, scales='free_x') +
-  theme(legend.position='bottom') + labs(fill='')
+  theme(legend.position='bottom', axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + labs(fill='')
 
-ggsave('images/viz_sc_plot.png', sc_plot, scale=1, width=3000, height=2000, units='px')
+ggsave('images/viz_sc_utterance.png', sc_plot_utterance, scale=1, width=6000, height=4000, units='px')
+
+
+sc_plot_word <- sc_params %>% 
+  filter(str_detect(Parameter, 'word-initial')) %>% 
+  ggplot(aes(x=reorder(Parameter, Estimate), y=Estimate)) +
+  geom_crossbar(
+    aes(
+      ymin=hpdi_89_low,
+      ymax=hpdi_89_high,
+      fill=CLTS,
+      alpha=ifelse(outside == 1, 1, 0.1)
+    ), 
+    linewidth=0.5, width=0.5, fatten=0
+  ) + 
+  geom_errorbar(aes(ymin=hpdi_low, ymax=hpdi_high, width=0.3)) +
+  geom_hline(yintercept=0, color='red', alpha=0.5, linewidth=0.5)+
+  annotate('rect', ymin=rope_low, ymax=rope_high, xmin=0, xmax=Inf, alpha=.5) +
+  scale_fill_viridis(discrete=T, begin=0, end=1) +
+  scale_y_continuous(breaks=c(0.3, 0, -0.3)) +
+  scale_alpha(guide='none') +
+  facet_wrap(~CLTS, scales='free_x') +
+  theme(legend.position='bottom', axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + labs(fill='')
+
+ggsave('images/viz_sc_word.png', sc_plot_word, scale=1, width=6000, height=4000, units='px')
+
 
 #########################################
 ###     Speaker parameters            ###

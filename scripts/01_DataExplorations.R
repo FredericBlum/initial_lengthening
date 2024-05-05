@@ -15,6 +15,8 @@ data <- read_tsv('data.tsv') %>% mutate(
 langs <- data %>% group_by(Language) %>% count() %>% arrange(Language)
 phons <- data %>% group_by(Language, Value) %>% count() %>% arrange(n)
 cons <- data %>% group_by(CLTS, initial) %>% count() %>% arrange(n)
+averages <- data %>% group_by(initial) %>% summarize(avg=mean(Duration))
+grand_avg <- mean(data$Duration)
 
 ################################################
 #####       Distribution Plots             #####
