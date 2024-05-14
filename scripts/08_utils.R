@@ -86,14 +86,16 @@ map_doreco <- ggplot() +
   geom_jitter(
     data=languages,
     aes(Longitude, Latitude, fill=Family),
-    height=8, width=3, size=6, shape=21, alpha=0.8
+    height=3, width=2, size=6, shape=21, alpha=0.8
     ) +
-  scale_colour_viridis_d() +
+  scale_fill_viridis_d(option="D") +
   # geom_label_repel(box.padding=0.5, point.padding=0.5,
   #                  data=languages, aes(Longitude, Latitude, label=Name), 
   #                  min.segment.length=unit(0, 'lines'),
   #                  size=5, max.overlaps=99) +
-  scale_x_continuous(name="") + scale_y_continuous(name="") +
-  theme(legend.position="none")
+  scale_x_continuous(name=NULL, breaks=NULL) +
+  scale_y_continuous(name=NULL, breaks=NULL) +
+  theme_bw() +
+  theme(legend.position="none") 
 
 ggsave('images/map_doreco.png', map_doreco, scale=1, width=3000, height=2000, units="px")

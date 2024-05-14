@@ -8,7 +8,7 @@ library(viridis)
 library(tidybayes)
 library(brms)
 
-draws <- 100
+draws <- 6e3
 options(bitmapType="cairo")
 
 color_scheme_set("purple")
@@ -21,7 +21,7 @@ data <- read_tsv('data.tsv') %>%
       ))
   ))
 
-model <- readRDS(file="models/cl_speakerGamma.rds")
+model <- readRDS(file="models/cl_max.rds")
 languages <- unique(data$Language)
 
 
@@ -104,45 +104,53 @@ ggsave('images/eval_rhat_neff.png', rhat_neff_plot, scale=1)
 #########################################
 # Run model predictions
 #########################################
-### Using epreds
-if (file.exists("models/pred_expected.rds")) {
- e_preds <- readRDS(file="models/pred_expected.rds")
-} else{
- print("Sorry, the file does not yet exist. This may take some time.")
- e_preds <- tibble()
- for (lang in languages){
-   subdata <- data %>% filter(Language==lang)
+### Using new data
 
-   sub_epreds <- subdata %>% add_epred_draws(model, ndraws=draws) %>%
- 	    ungroup() %>% select(ID, Language, Duration, utt_initial, word_initial, initial, .epred)
-   e_preds <- rbind(e_preds, sub_epreds)
- }
- saveRDS(e_preds, file="models/pred_expected.rds")  
+new_data <- tibble(
+  Language='NewLang',
+  Family='NewFam',
+  Speaker=sample(c('1', '2', '3'), 10000, replace=TRUE),
+  word_initial=sample(c(0, 1), 10000, replace=TRUE),
+  utt_initial=sample(c(0, 1), 10000, replace=TRUE),
+  CLTS=sample(unique(data$CLTS), 10000, replace=TRUE),
+  cluster_status=sample(unique(data$cluster_status), 10000, replace=TRUE),
+  z_num_phones=rnorm(10000),
+  z_word_freq=rnorm(10000),
+  z_speech_rate=rnorm(10000)
+) %>% mutate(initial=as.factor(ifelse(utt_initial==1, "utterance-initial", ifelse(
+    word_initial==1, "word-initial", "other"
+  ))))
+
+### Using epreds
+if (file.exists("models/pred_new.rds")) {
+  new_epreds <- readRDS(file="models/pred_new.rds")
+} else{
+  print("Sorry, the file does not yet exist. This may take some time.")
+  new_epreds <- new_data %>% 
+    add_epred_draws(model, ndraws=draws, allow_new_levels=TRUE, seed=42) %>%
+    ungroup() %>% select(Language, utt_initial, word_initial, initial, .epred)
+  saveRDS(new_epreds, file="models/pred_new.rds")  
 }
 
-avg <- e_preds %>% group_by(initial) %>% summarise(mean=mean(.epred))
+avg <- new_epreds %>% group_by(initial) %>% summarise(mean=mean(.epred))
 print('#############################')
 print("Average for expected draws:")
 print(avg)
 print('#############################')
 
-plot_expected <- e_preds %>% 
- ggplot(aes(y=.epred, x=initial)) +
- geom_violin(aes(fill=initial)) +
- geom_boxplot(width=0.5, 
-              outlier.size=1, outlier.color="black", outlier.alpha=0.3) +
- # If you want to plot the distribution across all languages, uncomment the
- # following line and set ncol=n according to your needs.
- # facet_wrap(~Language, ncol=4) +
- scale_fill_viridis(discrete=TRUE, end=0.7) +
- scale_y_log10(limits=c(5, 700), breaks=c(10, 20, 50, 70, 150, 300, 500), 
-               name="duration on log-axis") +
- scale_x_discrete(label=NULL, name=NULL) +
- theme_grey(base_size=11) +
- theme(legend.position='bottom', legend.title=element_blank())
+plot_newdata <- new_epreds %>% 
+  ggplot(aes(y=.epred, x=initial)) +
+  geom_violin(aes(fill=initial)) +
+  geom_boxplot(width=0.5, 
+               outlier.size=1, outlier.color="black", outlier.alpha=0.3) +
+  scale_fill_viridis(discrete=TRUE, end=0.7) +
+  scale_y_log10(limits=c(20, 500), name="duration on log-axis") +
+  scale_x_discrete(label=NULL, name=NULL) +
+  theme_grey(base_size=11) +
+  theme(legend.position='bottom', legend.title=element_blank())
 
-ggsave(plot_expected, filename='images/viz_post_expected.png', 
-      width=1600, height=2300, units="px")
+ggsave(plot_newdata, filename='images/viz_post_newdata.png', 
+       width=2000, height=1500, units="px")
 
 #########################################
 # Using posterior_draws from tidybayes
@@ -184,8 +192,8 @@ plot_preds <- m_preds %>%
  theme_grey(base_size=11) +
  theme(legend.position='bottom', legend.title=element_blank())
 
-ggsave(plot_preds, filename='images/viz_post_predicted.png',
-      width=1600, height=2300, units="px")
+# ggsave(plot_preds, filename='images/viz_post_predicted.png',
+#       width=1600, height=2300, units="px")
 
 # Using fitted
 if (file.exists("models/pred_fitted.rds")) {
@@ -225,8 +233,8 @@ plot_fit <- comb %>%
   theme_grey(base_size=11) +
   theme(legend.position='bottom', legend.title=element_blank())
 
-ggsave(plot_fit, filename='images/viz_post_fit.png', 
-       width=1600, height=2300, units="px")
+# ggsave(plot_fit, filename='images/viz_post_fit.png', 
+#        width=1600, height=2300, units="px")
 
 
 if (file.exists("models/pred_post.rds")) {

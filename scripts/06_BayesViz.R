@@ -12,7 +12,7 @@ library(xtable)
 
 
 ###################################################################
-model <- readRDS(file='models/cl_speakerGamma.rds')
+model <- readRDS(file='models/cl_max.rds')
 
 languages <- read_csv('languages.csv')
 

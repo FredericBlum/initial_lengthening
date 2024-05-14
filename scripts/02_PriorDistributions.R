@@ -47,7 +47,7 @@ sample_ints <- tibble(x=c(exp(rnorm(n, mean=4.4, sd=0.05)))) %>%
 #########################################
 ###         sd_var                    ###
 #########################################
-sd_var <- rgamma(n, 2, 30) %>% 
+sd_var <- rgamma(n, 3, 30) %>% 
   tibble() %>% 
   mutate(group='Gamma') %>% 
   ggplot(aes(x=.)) + 

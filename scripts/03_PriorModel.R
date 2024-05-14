@@ -43,64 +43,68 @@ model <-
   )
 
 
-# Visualising the prior checks
-rope_high <-  0.01
-rope_low <-  -0.01
-
-para_vals <- posterior_summary(model) %>% data.frame() %>% as_tibble(rownames="Parameter")
-
-hpdi_vals <- posterior_interval(model, prob=0.89) %>% data.frame() %>% as_tibble(rownames='Parameter') %>% 
-  rename(hpdi_low=X5.5., hpdi_high=X94.5.)
-
-para_vals <- para_vals %>% left_join(hpdi_vals)
-fix_eff <- para_vals %>% filter(Parameter %in% c('word-initial', 'utt-initial', 'cs_noInitial', 'cs_noCluster'))
-
-lang_params <- para_vals %>% 
-  filter(grepl('^r_Language\\[.*', Parameter)) %>% 
-  mutate(
-    Parameter=str_replace(Parameter, 'r_Language\\[', ''),
-    Parameter=str_replace(Parameter, '\\]', '')
-  ) %>% 
-  separate(sep=',', col=Parameter, into=c('Language', 'Parameter')) %>% 
-  filter(Parameter != 'Intercept') %>% 
-  left_join(fix_eff, by='Parameter') %>%
-  transmute(
-    Language=Language, Parameter=Parameter,
-    Estimate=Estimate.x + Estimate.y,
-    hpdi_89_high=hpdi_89_high.x + hpdi_89_high.y,
-    hpdi_89_low=hpdi_89_low.x + hpdi_89_low.y,
-    hpdi_high=hpdi_high.x + hpdi_high.y,
-    hpdi_low=hpdi_low.x + hpdi_low.y
-  ) %>%
-  mutate(outside=ifelse(hpdi_89_high < rope_low, TRUE, ifelse(hpdi_89_low > rope_high, TRUE, FALSE))) %>% 
-  mutate(Glottocode=Language) %>% select(-Language) %>% left_join(languages)
-
-prior_lang_all <- lang_params %>% filter(Parameter != "Intercept") %>% 
-  mutate(Parameter=str_replace(Parameter, "_initial", "-")) %>% 
-  ggplot(aes(x=Parameter, y=Estimate)) +
-  geom_crossbar(aes(ymin=hpdi_low, ymax=hpdi_high, fill=Parameter), linewidth=0.5, width=0.5, fatten=0) + 
-  geom_hline(yintercept=0, color="red", alpha=0.5, linewidth=0.5)+
-  scale_fill_viridis(discrete =T, end=0.7) +
-  scale_y_continuous(breaks=seq(from=-0.5, to=0.5, by=0.5)) +
-  facet_wrap(~Language, ncol=5) +
-  scale_x_discrete(name=NULL, labels=NULL)  +
-  scale_alpha(guide="none") +
-  theme(legend.position='bottom') + labs(fill="")
-
-ggsave("images/prior_langAll.png", prior_lang_all, scale=1, width=2000, height=2000, units="px")
+# Prior predictive checks
+draws <- 6e3
+new_data <- tibble(
+  Language='NewLang',
+  Family='NewFam',
+  Speaker=sample(c('1', '2', '3'), 10000, replace=TRUE),
+  word_initial=sample(c(0, 1), 10000, replace=TRUE),
+  utt_initial=sample(c(0, 1), 10000, replace=TRUE),
+  CLTS=sample(unique(data$CLTS), 10000, replace=TRUE),
+  cluster_status=sample(unique(data$cluster_status), 10000, replace=TRUE),
+  z_num_phones=rnorm(10000),
+  z_word_freq=rnorm(10000),
+  z_speech_rate=rnorm(10000)
+) %>% mutate(initial=as.factor(ifelse(utt_initial==1, "utterance-initial", ifelse(
+  word_initial==1, "word-initial", "other"
+))))
 
 
-# Preiod predictive checks
-raw_durations <- data %>% .$Duration
+if (file.exists("models/priorpred_new.rds")) {
+  new_epreds <- readRDS(file="models/priorpred_new.rds")
+} else{
+  print("Sorry, the file does not yet exist. This may take some time.")
+  new_epreds <- new_data %>% 
+    add_epred_draws(model, ndraws=draws, allow_new_levels=TRUE, seed=42) %>%
+    ungroup() %>% select(Language, utt_initial, word_initial, initial, .epred)
+  saveRDS(new_epreds, file="models/priorpred_new.rds")  
+}
 
+avg <- new_epreds %>% group_by(initial) %>% summarise(mean=mean(.epred))
+print('#############################')
+print("Average for expected draws:")
+print(avg)
+print('#############################')
+
+plot_newdata <- new_epreds %>% 
+  ggplot(aes(y=.epred, x=initial)) +
+  geom_violin(aes(fill=initial)) +
+  geom_boxplot(width=0.5, 
+               outlier.size=1, outlier.color="black", outlier.alpha=0.3) +
+  scale_fill_viridis(discrete=TRUE, end=0.7) +
+  scale_y_log10(limits=c(2, 2000), name="duration on log-axis") +
+  scale_x_discrete(label=NULL, name=NULL) +
+  theme_grey(base_size=11) +
+  theme(legend.position='bottom', legend.title=element_blank())
+
+ggsave(plot_newdata, filename='images/viz_prior_newdata.png', 
+       width=2000, height=1500, units="px")
+
+
+################################################################################
+### Prior Predictive Checks                                                 ###
+################################################################################
 if (file.exists("models/pred_prior.rds")) {
   priorsim_durations <- readRDS(file="models/pred_prior.rds")
 } else{
   print("Sorry, the file does not yet exist. This may take some time.")
-  priorsim_durations <- posterior_predict(model, ndraws=100, cores=getOption("mc.cores", 4))
+  priorsim_durations <- posterior_predict(cl_priors, ndraws=8, 
+                                          cores=getOption("mc.cores", 4))
   saveRDS(priorsim_durations, file="models/pred_prior.rds")
 } 
 
+raw_durations <- data %>% .$Duration
 prior_box <- ppc_boxplot(raw_durations, priorsim_durations[4:8, ])  + 
   scale_y_log10(breaks=c(2, 10, 30, 100, 500, 2000, 5000), limit=c(1, 5000), name="Duration on log-axis") +
   theme(legend.position="none") +

@@ -26,7 +26,7 @@ model <-
         prior(gamma(3, 30), class=sd),
         prior(lkj(5), class=cor)
       ),
-      iter=7500, warmup=2500, chains=4, cores=4,
+      iter=4000, warmup=2500, chains=4, cores=4,
       threads=threading(3),
       control=list(adapt_delta=0.90, max_treedepth=10),
       seed=1,
