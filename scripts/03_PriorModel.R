@@ -1,113 +1,119 @@
 library(dplyr)
 library(readr)
 library(stringr)
+library(tidyr)
 library(brms)
+library(ggplot2)
+library(viridis)
 library(cmdstanr)
-library(ape)
+library(tidybayes)
+library(bayesplot)
+library(patchwork)
+
+options(bitmapType="cairo")
+
+data <- read_tsv('data.tsv')
+languages <- read_csv('languages.csv')
 
 
-langs <- read_csv('languages.csv')
-data <- read_tsv('data.tsv') %>% 
-  mutate(
-    word_initial = as.factor(word_initial),
-    utt_initial = as.factor(utt_initial),
-    cluster = as.factor(ifelse(InCluster==0, 'single', ifelse(
-      ClusterInitial==1, 'initial', 'nonInitial')
-    ))
-  ) %>% 
-  left_join(langs, by = join_by(Language==ID))
-
-
-# Read in phylogenetic control
-df_phylo <- read_rds("df-phylo.rds")
-phylo <- vcv.phylo(df_phylo, corr=TRUE)
-
-# If necessary, set path to specific cmdstan installation
-set_cmdstan_path(path = "/data/tools/stan/cmdstan-2.32.2/")
-
-cl_priors <- 
+model <- 
   brm(data=data,
       family=Gamma("log"),
-      formula=Duration ~ 1 + utt_initial + word_initial + cluster +
-        (1 + utt_initial + word_initial + cluster | Language) +
-        (1 | Speaker) + (1 | CLTS) +
+      formula=Duration ~ 1 + utt_initial + word_initial + cluster_status +
+        (1 + utt_initial + word_initial + cluster_status | Language) +
+        (1 + utt_initial + word_initial | Speaker) +
+        (1 + utt_initial + word_initial | CLTS) +
+        (1 | Family) +
         z_num_phones + z_word_freq + z_speech_rate,
-      prior=c(prior(normal(4.5, 0.1), class=Intercept),
-              prior(normal(6, 0.5), class=shape),
-              prior(normal(0, 0.3), class=b),
-              prior(exponential(12), class=sd),
-              prior(lkj(5), class=cor)), 
-      iter=4000, warmup=2000, chains=4, cores=4,
-      seed=42,
-      sample_prior="only",
-      file="models/cl_priors",
+      prior=c(
+        prior(normal(4.4, 0.05), class=Intercept),
+        prior(normal(6, 0.5), class=shape),
+        prior(normal(0, 0.3), class=b),
+        prior(gamma(3, 30), class=sd),
+        prior(lkj(5), class=cor)
+      ),
+      iter=7500, warmup=2500, chains=4, cores=4,
+      threads=threading(3),
+      control=list(adapt_delta=0.90, max_treedepth=10),
+      seed=1,
+      silent=0,
+      sample_prior='only',
+      file="models/cl_prior",
       backend="cmdstanr"
   )
 
-para_vals <- posterior_summary(cl_priors) %>% 
-  data.frame() %>% as_tibble(rownames="Parameter")
 
-hpdi_vals <- posterior_interval(cl_priors, prob=0.80) %>% 
-  data.frame() %>% as_tibble(rownames="Parameter") %>% 
-  rename(hpdi_low=X10., hpdi_high=X90.)
+# Prior predictive checks
+draws <- 6e3
+new_data <- tibble(
+  Language='NewLang',
+  Family='NewFam',
+  Speaker=sample(c('1', '2', '3'), 10000, replace=TRUE),
+  word_initial=sample(c(0, 1), 10000, replace=TRUE),
+  utt_initial=sample(c(0, 1), 10000, replace=TRUE),
+  CLTS=sample(unique(data$CLTS), 10000, replace=TRUE),
+  cluster_status=sample(unique(data$cluster_status), 10000, replace=TRUE),
+  z_num_phones=rnorm(10000),
+  z_word_freq=rnorm(10000),
+  z_speech_rate=rnorm(10000)
+) %>% mutate(initial=as.factor(ifelse(utt_initial==1, "utterance-initial", ifelse(
+  word_initial==1, "word-initial", "other"
+))))
 
-para_vals <- para_vals %>% left_join(hpdi_vals)
-lang_params <- para_vals %>% filter(grepl("^r_Language.*", para_vals$Parameter)) %>% 
-  filter(grepl("^r_Language:sound_class\\[.*", Parameter)) %>% 
-  mutate(
-    Parameter=gsub("^r_Language:sound_class\\[(.*)(,-initial|,)(.*)]","\\1__\\3",Parameter),
-    Parameter=str_replace(Parameter, "_initial1", "-initial"),
-    Parameter=str_replace(Parameter, "__", "_")) %>% 
-  separate(sep="_", col=Parameter, into=c("Language", "SoundClass", "Parameter")) %>% 
-  filter(Parameter != "Intercept") %>% 
-  mutate(sd_min=Estimate - 3*Est.Error, 
-         sd_max=Estimate + 3*Est.Error,
-         Parameter=str_replace(Parameter, "UttInitial", "utterance-initial"),
-         Parameter=str_replace(Parameter, "WordInitial", "word-initial"))
 
-prior_lang_all <- lang_params %>% filter(Parameter != "Intercept") %>% 
-  mutate(Parameter=str_replace(Parameter, "_initial", "")) %>% 
-  ggplot(aes(x=Parameter, y=Estimate)) +
-  geom_crossbar(aes(ymin=hpdi_low, ymax=hpdi_high, fill=Parameter), 
-                linewidth=0.5, width=0.5, fatten=0) + 
-  geom_errorbar(aes(ymin=sd_min, ymax=sd_max, width=0.3)) +
-  geom_hline(yintercept=0, color="red", alpha=0.5, linewidth=0.5)+
-  scale_fill_viridis(discrete =T, end=0.7) +
-  scale_y_continuous(breaks=seq(from=-0.5, to=0.5, by=0.5)) +
-  facet_wrap(~Language, ncol=5) +
-  scale_x_discrete(name=NULL, labels=NULL)  +
-  scale_alpha(guide="none") +
-  theme(legend.position='bottom') + labs(fill="")
+if (file.exists("models/priorpred_new.rds")) {
+  new_epreds <- readRDS(file="models/priorpred_new.rds")
+} else{
+  print("Sorry, the file does not yet exist. This may take some time.")
+  new_epreds <- new_data %>% 
+    add_epred_draws(model, ndraws=draws, allow_new_levels=TRUE, seed=42) %>%
+    ungroup() %>% select(Language, utt_initial, word_initial, initial, .epred)
+  saveRDS(new_epreds, file="models/priorpred_new.rds")  
+}
 
-ggsave("images/prior_langAll.png", prior_lang_all, scale=1,
-       width=2000, height=2000, units="px")
+avg <- new_epreds %>% group_by(initial) %>% summarise(mean=mean(.epred))
+print('#############################')
+print("Average for expected draws:")
+print(avg)
+print('#############################')
 
-raw_durations <- data %>% .$Duration
+plot_newdata <- new_epreds %>% 
+  ggplot(aes(y=.epred, x=initial)) +
+  geom_violin(aes(fill=initial)) +
+  geom_boxplot(width=0.5, 
+               outlier.size=1, outlier.color="black", outlier.alpha=0.3) +
+  scale_fill_viridis(discrete=TRUE, end=0.7) +
+  scale_y_log10(limits=c(2, 2000), name="duration on log-axis") +
+  scale_x_discrete(label=NULL, name=NULL) +
+  theme_grey(base_size=11) +
+  theme(legend.position='bottom', legend.title=element_blank())
 
+ggsave(plot_newdata, filename='images/viz_prior_newdata.png', 
+       width=2000, height=1500, units="px")
+
+
+################################################################################
+### Prior Predictive Checks                                                 ###
+################################################################################
 if (file.exists("models/pred_prior.rds")) {
   priorsim_durations <- readRDS(file="models/pred_prior.rds")
 } else{
   print("Sorry, the file does not yet exist. This may take some time.")
-  priorsim_durations <- posterior_predict(cl_priors, ndraws=8, 
-                                          cores=getOption("mc.cores", 4))
+  priorsim_durations <- posterior_predict(model, ndraws=8, 
+                                          cores=getOption("mc.cores", 40))
   saveRDS(priorsim_durations, file="models/pred_prior.rds")
 } 
 
+raw_durations <- data %>% .$Duration
 prior_box <- ppc_boxplot(raw_durations, priorsim_durations[4:8, ])  + 
-  scale_y_log10(breaks=c(2, 10, 30, 100, 500, 2000, 5000),
-                limit=c(1, 5000),
-                name="Duration on log-axis") +
+  scale_y_log10(breaks=c(2, 10, 30, 100, 500, 2000, 5000), limit=c(1, 5000), name="Duration on log-axis") +
   theme(legend.position="none") +
   labs(title="Real and simulated data")
 
-prior_overlay <- ppc_dens_overlay(raw_durations, priorsim_durations[1:8, ], 
-                                  alpha=0.5, size=0.7, adjust=1) +
-  scale_x_log10(breaks=c(2, 5, 10, 30, 100, 500, 2000, 5000),
-                limit=c(1, 5000),
-                name="")
+prior_overlay <- ppc_dens_overlay(raw_durations, priorsim_durations[1:8, ], alpha=0.5, size=0.7, adjust=1) +
+  scale_x_log10(breaks=c(2, 5, 10, 30, 100, 500, 2000, 5000), limit=c(1, 5000), name="")
 
 prior_overlay$scales$scales[[1]]$labels <- c("data", "prior")
 
 prior_sim <- ((prior_box / prior_overlay) + plot_layout(guides="collect"))
-ggsave("images/prior_simData.png", prior_sim, scale=1,
-       width=2000, height=1400, units="px")
+ggsave("images/prior_simData.png", prior_sim, scale=1, width=2000, height=1400, units="px")
