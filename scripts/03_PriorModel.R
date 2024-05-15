@@ -110,7 +110,7 @@ prior_box <- ppc_boxplot(raw_durations, priorsim_durations[4:8, ])  +
   theme(legend.position="none") +
   labs(title="Real and simulated data")
 
-prior_overlay <- ppc_dens_overlay(raw_durations, priorsim_durations[1:100, ], alpha=0.5, size=0.7, adjust=1) +
+prior_overlay <- ppc_dens_overlay(raw_durations, priorsim_durations[1:8, ], alpha=0.5, size=0.7, adjust=1) +
   scale_x_log10(breaks=c(2, 5, 10, 30, 100, 500, 2000, 5000), limit=c(1, 5000), name="")
 
 prior_overlay$scales$scales[[1]]$labels <- c("data", "prior")

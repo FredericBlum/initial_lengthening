@@ -60,6 +60,6 @@ Now you are in a folder full of R-Scripts. The first script `00_setup.R` include
 Rscript 00_setup.R
 ```
 
-Please not that the two scripts which run the brms-model are currently commented out. This has a simple reason: Running them takes several days. If you want to re-run the model, please go to the respective script and run it from there, or un-comment the line in `00_setup.R`. We provide the fitted model within our OSF-repository [here](https://osf.io/tc9zx/?view_only=a658d5da64a7431f87d993b71a8e184c) so that you do not need to re-run the model.
+Please not that the two scripts which run the brms-model are currently commented out. This has a simple reason: Running them takes several days. If you want to re-run the model, please go to the respective script and run it from there, or un-comment the line in `00_setup.R`. We provide the fitted model within our OSF-repository [here](https:doi.org/10.17605/OSF.IO/TC9ZX) so that you do not need to re-run the model.
 
 If you want to run code from within the individual R-files, please set the working directory to the `scripts`-folder so that all the code is run correctly.

@@ -8,3 +8,4 @@ scripts/data_nofilter.tsv
 scripts/models/*.rds
 scripts/R_groundhog/
 scripts/groundhog_libraries_2023-07-17/
+*.sh
