@@ -10,11 +10,9 @@ library(bayesplot)
 library(patchwork)
 
 
-data <- read_tsv('data.tsv') %>% sample_frac(0.01)
+data <- read_tsv('data.tsv')
 languages <- read_csv('languages.csv')
 
-# If necessary, set path to specific cmdstan installation
-set_cmdstan_path(path="/data/users/blum/tools/cmdstan-2.32.2-threaded/")
 
 model <- 
   brm(data=data,
@@ -99,7 +97,7 @@ if (file.exists("models/pred_prior.rds")) {
   priorsim_durations <- readRDS(file="models/pred_prior.rds")
 } else{
   print("Sorry, the file does not yet exist. This may take some time.")
-  priorsim_durations <- posterior_predict(cl_priors, ndraws=8, 
+  priorsim_durations <- posterior_predict(model, ndraws=8, 
                                           cores=getOption("mc.cores", 4))
   saveRDS(priorsim_durations, file="models/pred_prior.rds")
 } 

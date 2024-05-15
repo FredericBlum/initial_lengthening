@@ -232,7 +232,7 @@ sc_plot_utterance<- sc_params %>%
   facet_wrap(~CLTS, scales='free_x') +
   theme(legend.position='bottom', axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + labs(fill='')
 
-ggsave('images/viz_sc_utterance.png', sc_plot_utterance, scale=1, width=6000, height=4000, units='px')
+ggsave('images/viz_sc_utterance.png', sc_plot_utterance, scale=1, width=6000, height=6000, units='px')
 
 
 sc_plot_word <- sc_params %>% 
@@ -256,7 +256,7 @@ sc_plot_word <- sc_params %>%
   facet_wrap(~CLTS, scales='free_x') +
   theme(legend.position='bottom', axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + labs(fill='')
 
-ggsave('images/viz_sc_word.png', sc_plot_word, scale=1, width=6000, height=4000, units='px')
+ggsave('images/viz_sc_word.png', sc_plot_word, scale=1, width=6000, height=6000, units='px')
 
 
 #########################################

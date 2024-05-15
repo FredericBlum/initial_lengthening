@@ -56,7 +56,7 @@ sd_var <- rgamma(n, 3, 30) %>%
   scale_x_continuous(name="Standard deviation of varying intercepts on log-scale") +
   scale_fill_viridis(discrete=T, alpha=0.7, end=0.7) +
   theme(legend.position="none", plot.title=element_text(size=14)) +  
-  labs(title="γ ~ Gamma(2, 30)")
+  labs(title="γ ~ Gamma(3, 30)")
 
 #########################################
 ###     varying slopes matrix         ###

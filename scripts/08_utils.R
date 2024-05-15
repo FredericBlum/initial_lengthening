@@ -99,3 +99,4 @@ map_doreco <- ggplot() +
   theme(legend.position="none") 
 
 ggsave('images/map_doreco.png', map_doreco, scale=1, width=3000, height=2000, units="px")
+
