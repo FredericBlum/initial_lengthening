@@ -6,9 +6,11 @@ library(brms)
 library(ggplot2)
 library(viridis)
 library(cmdstanr)
+library(tidybayes)
 library(bayesplot)
 library(patchwork)
 
+options(bitmapType="cairo")
 
 data <- read_tsv('data.tsv')
 languages <- read_csv('languages.csv')
@@ -98,7 +100,7 @@ if (file.exists("models/pred_prior.rds")) {
 } else{
   print("Sorry, the file does not yet exist. This may take some time.")
   priorsim_durations <- posterior_predict(model, ndraws=8, 
-                                          cores=getOption("mc.cores", 4))
+                                          cores=getOption("mc.cores", 40))
   saveRDS(priorsim_durations, file="models/pred_prior.rds")
 } 
 
