@@ -99,8 +99,7 @@ if (file.exists("models/pred_prior.rds")) {
   priorsim_durations <- readRDS(file="models/pred_prior.rds")
 } else{
   print("Sorry, the file does not yet exist. This may take some time.")
-  priorsim_durations <- posterior_predict(model, ndraws=8, 
-                                          cores=getOption("mc.cores", 40))
+  priorsim_durations <- posterior_predict(model, ndraws=8, cores=getOption("mc.cores", 40))
   saveRDS(priorsim_durations, file="models/pred_prior.rds")
 } 
 

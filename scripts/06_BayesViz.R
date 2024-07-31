@@ -67,7 +67,7 @@ langCluster <- lang_params %>% filter(Parameter %in% c('cs_noInitial', 'cs_noClu
 pop_level <- c(
   'z_speech_rate', 'z_num_phones', 'z_word_freq',
   'utt-initial', 'word-initial',
-  'cluster-status_noInitial', 'cluster-status_noCluster'
+  'cs_noCluster', 'cs_noInitial'
   )
 
 #########################################
@@ -80,31 +80,54 @@ fixed_effects <- para_vals %>% filter(Parameter %in% pop_level) %>%
     Parameter=str_replace(Parameter, 'num_phones', 'phones per word'),
     Parameter=str_replace(Parameter, 'word_freq', 'word-form frequency'),
     Parameter=str_replace(Parameter, 'speech_rate', 'speech rate'),
+    Parameter=str_replace(Parameter, 'cs_noCluster', 'no Cluster'),
+    Parameter=str_replace(Parameter, 'cs_noInitial', 'in Cluster (non-initial)'),
+    Parameter=str_replace(Parameter, 'utt-initial', 'utterance-initial'),
+    hpdi_89_low=ifelse((hpdi_89_high - hpdi_89_low) > 0.02, hpdi_89_low, NA), 
+    hpdi_89_high=ifelse((hpdi_89_high - hpdi_89_low) > 0.02, hpdi_89_high, NA), 
     '95% HPDI'=paste(format(round(hpdi_low, 2), nsmall=2), 'to', format(round(hpdi_high, 2), nsmall=2))
-    ) %>%
+    ) 
+
+fixed_effects_t <- fixed_effects %>% 
   select(Parameter, Estimate, '95% HPDI') %>% 
   xtable(caption='95% HPDI of the population-level predictors', label='table: fixed_effects')
-print(xtable(fixed_effects), include.rownames=FALSE)
+print(xtable(fixed_effects_t), include.rownames=FALSE)
 
+
+ordering <- c(
+  'word-initial', 'utterance-initial', 'no Cluster', 'in Cluster (non-initial)',
+  'word-form frequency', 'phones per word' , 'speech rate')
+
+fixed_effects %>% 
+  ggplot(aes(x=Estimate, y=factor(Parameter, level=ordering), fill=Parameter)) +
+  geom_point(size=8, shape=21) +
+  geom_crossbar(aes(xmin=hpdi_89_low, xmax=hpdi_89_high), width=0.4) +
+  scale_fill_viridis(discrete=TRUE, begin=0.2, end=0.9) +
+  geom_vline(xintercept=0, color='red') +
+  annotate('rect', xmin=rope_low, xmax=rope_high, ymin=0, ymax=Inf, alpha=.2) +
+  scale_y_discrete(name=NULL, breaks=) +
+  scale_x_continuous(name=NULL) +
+  theme(legend.position='none')
+
+ggsave('images/viz_overall.pdf', overall_areas, dpi=300)
 
 #########################################
 ###    Overall areas                  ###
 #########################################
-np_max <- nuts_params(model)
-posterior_max <- as.array(model)
+# np_max <- nuts_params(model)
+# posterior_max <- as.array(model)
+# 
+# overall_areas <- model %>%
+#   mcmc_areas(regex_pars=c('^b_(utt|word)_initial$', '^b_z_', '^b_cluster_status'), prob=0.89, prob_outer=0.997, point_est='mean') +
+#   geom_vline(xintercept=0, color='red', alpha=0.5, linewidth=1)+
+#   annotate('rect', xmin=rope_low, xmax=rope_high, ymin=0, ymax=Inf, alpha=.3) +
+#   scale_y_discrete(labels=c(
+#     'utt-initial','word-initial',
+#     'phones per word', 'word-form freq', 'speech rate',
+#     'singleton', 'cluster-internal')) +
+#   scale_x_continuous(name='Effect on log-scale') +
+#   theme_bw()
 
-overall_areas <- model %>%
-  mcmc_areas(regex_pars=c('^b_(utt|word)_initial$', '^b_z_', '^b_cluster_status'), prob=0.89, prob_outer=0.997, point_est='mean') +
-  geom_vline(xintercept=0, color='red', alpha=0.5, linewidth=1)+
-  annotate('rect', xmin=rope_low, xmax=rope_high, ymin=0, ymax=Inf, alpha=.3) +
-  scale_y_discrete(labels=c(
-    'utt-initial','word-initial',
-    'phones per word', 'word-form freq', 'speech rate',
-    'singleton', 'cluster-internal')) +
-  scale_x_continuous(name='Effect on log-scale') +
-  theme_bw()
-
-ggsave('images/viz_overall.png', overall_areas, scale=1, width=2000, height=1000, units='px')
 
 #########################################
 ###     Language plots              ###
@@ -125,7 +148,7 @@ word_init <- lang_params %>%
   scale_x_continuous(name=NULL) +
   theme(legend.position='none')
 
-ggsave('images/viz_wordInit.png', word_init, width=2000, height=2500, units='px')
+ggsave('images/viz_wordInit.pdf', device=cairo_pdf)
 
 ###################################################################
 utt_init <- lang_params %>%
@@ -144,51 +167,52 @@ utt_init <- lang_params %>%
   scale_x_continuous(name=NULL) +
   theme(legend.position='none')
 
-ggsave('images/viz_uttInit.png', utt_init, width=2000, height=2500, units='px')
-
-combined <- lang_params %>% 
-  filter(Parameter %in% c('utt-initial', 'word-initial')) %>% 
-  mutate(Parameter=str_replace(Parameter, 'utt-', 'utterance-')) %>% 
-  ggplot(aes(x=Parameter, y=Estimate)) +
-  geom_crossbar(
-    aes(
-      ymin=hpdi_89_low,
-      ymax=hpdi_89_high,
-      fill=Parameter,
-      alpha=ifelse(outside==TRUE, 1, 0.1)
-      ), 
-    linewidth=0.5, width=0.7, fatten=0
-    ) + 
-  geom_errorbar(aes(ymin=hpdi_low, ymax=hpdi_high, width=0.5)) +
-  annotate('rect', ymin=rope_low, ymax=rope_high, xmin=0, xmax=Inf, alpha=.8) +
-  scale_fill_viridis(discrete=T, begin=0.35, end=0.75) +
-  facet_wrap(~Language, ncol=6) +
-  scale_x_discrete(name=NULL, labels=NULL) +
-  scale_y_continuous(breaks=c(0.3, 0, -0.3)) +
-  scale_alpha(guide='none') +
-  theme(legend.position='bottom') + labs(fill='')
-
-ggsave('images/viz_combined.png', combined, width=3000, height=4000, scale=0.8, units='px')
+ggsave('images/viz_uttInit.pdf', device=cairo_pdf)
 
 ###################################################################
-cluster_plot <- lang_params %>%
-  filter(Parameter %in% c('cs_noCluster', 'cs_noInitial')) %>% 
-  ggplot(aes(x=Estimate, y=reorder(Language, Estimate))) +
-  geom_errorbar(aes(xmin=hpdi_low, xmax=hpdi_high)) + 
-  geom_crossbar(aes(
-    xmin=hpdi_89_low, xmax=hpdi_89_high, fill=Parameter,
-    alpha=ifelse(outside == 1, 0.8, 0.5)), 
-    fatten=2, linewidth=0.5, width=0.8
-    ) +  
-  geom_vline(xintercept=0, color='red') +
-  annotate('rect', xmin=rope_low, xmax=rope_high, ymin=0, ymax=Inf, alpha=.2) +
-  scale_y_discrete(name=NULL) +
-  scale_x_continuous(name=NULL) +
-  scale_fill_viridis(discrete=T, begin=0.35, end=0.35) +
-  facet_wrap(~Parameter) +
-  theme(legend.position='none')
+# combined <- lang_params %>% 
+#   filter(Parameter %in% c('utt-initial', 'word-initial')) %>% 
+#   mutate(Parameter=str_replace(Parameter, 'utt-', 'utterance-')) %>% 
+#   ggplot(aes(x=Parameter, y=Estimate)) +
+#   geom_crossbar(
+#     aes(
+#       ymin=hpdi_89_low,
+#       ymax=hpdi_89_high,
+#       fill=Parameter,
+#       alpha=ifelse(outside==TRUE, 1, 0.1)
+#       ), 
+#     linewidth=0.5, width=0.7, fatten=0
+#     ) + 
+#   geom_errorbar(aes(ymin=hpdi_low, ymax=hpdi_high, width=0.5)) +
+#   annotate('rect', ymin=rope_low, ymax=rope_high, xmin=0, xmax=Inf, alpha=.8) +
+#   scale_fill_viridis(discrete=T, begin=0.35, end=0.75) +
+#   facet_wrap(~Language, ncol=6) +
+#   scale_x_discrete(name=NULL, labels=NULL) +
+#   scale_y_continuous(breaks=c(0.3, 0, -0.3)) +
+#   scale_alpha(guide='none') +
+#   theme(legend.position='bottom') + labs(fill='')
+# 
+# ggsave('images/viz_combined.pdf', combined, width=3000, height=4000, scale=0.8, units='px')
 
-ggsave('images/viz_cluster.png', cluster_plot, width=2000, height=2500, units='px')
+###################################################################
+# cluster_plot <- lang_params %>%
+#   filter(Parameter %in% c('cs_noCluster', 'cs_noInitial')) %>% 
+#   ggplot(aes(x=Estimate, y=reorder(Language, Estimate))) +
+#   geom_errorbar(aes(xmin=hpdi_low, xmax=hpdi_high)) + 
+#   geom_crossbar(aes(
+#     xmin=hpdi_89_low, xmax=hpdi_89_high, fill=Parameter,
+#     alpha=ifelse(outside == 1, 0.8, 0.5)), 
+#     fatten=2, linewidth=0.5, width=0.8
+#     ) +  
+#   geom_vline(xintercept=0, color='red') +
+#   annotate('rect', xmin=rope_low, xmax=rope_high, ymin=0, ymax=Inf, alpha=.2) +
+#   scale_y_discrete(name=NULL) +
+#   scale_x_continuous(name=NULL) +
+#   scale_fill_viridis(discrete=T, begin=0.35, end=0.35) +
+#   facet_wrap(~Parameter) +
+#   theme(legend.position='none')
+# 
+# ggsave('images/viz_cluster.pdf', cluster_plot, width=2000, height=2500, units='px')
 
 #########################################
 ###   Sound Class analysis            ###

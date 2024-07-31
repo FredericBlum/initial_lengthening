@@ -12,7 +12,10 @@ library(viridis)
 data <- read_tsv('data.tsv') %>% mutate(
   initial=ifelse(utt_initial==1, "utterance-initial", ifelse(word_initial==1, "word-initial", "other")))
 
-langs <- data %>% group_by(Language) %>% count() %>% arrange(Language)
+langs <- data %>% group_by(Language) %>% count() %>% arrange(n)
+fams <- data %>% distinct(Language, Family) %>% group_by(Family) %>% count() %>% arrange(-n)
+
+langs <- length(unique(data$Speaker))
 phons <- data %>% group_by(Language, Value) %>% count() %>% arrange(n)
 cons <- data %>% group_by(CLTS, initial) %>% count() %>% arrange(n)
 averages <- data %>% group_by(initial) %>% summarize(avg=mean(Duration))
