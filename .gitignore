@@ -1,10 +1,11 @@
-*Rproj
 *.DS_Store
+*Rproj
 .Rproj.user
-scripts/models/*.rds
-scripts/data.tsv
-scripts/R_groundhog/
-scripts/groundhog_libraries_2023-07-17/
 doreco/
 clts/
-scripts/vowels.tsv
+scripts/data.tsv
+scripts/data_nofilter.tsv
+scripts/models/*.rds
+scripts/R_groundhog/
+scripts/groundhog_libraries_2023-07-17/
+*.sh
