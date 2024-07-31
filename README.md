@@ -1,5 +1,9 @@
 # Word-initial consonant lengthening is a robust phenomenon across typologically diverse languages
 
+If you use some of the code, please cite the following article:
+
+> Blum, Frederic and Paschen, Ludger and Forkel, Robert and Fuchs, Susanne and Seifart, Frank. Accepted. Consonant lengthening marks the beginning of words across a diverse sample of languages. *Nature Human Behaviour*.
+
 ## Preparing DoReCo for the analysis
 
 This workflow leads you through the process of reproducing our analysis. We use certain system dependencies that we assume to be installed, like `sqlite3`, `git`, `Python`, and `R`. We recommend to run all the code in a fresh virtual environment. The code was tested using `cmdstan` version 2.32.2 and might not work with other versions. Please make sure to have the correct version installed.
